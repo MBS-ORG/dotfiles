@@ -1,4 +1,6 @@
-# Dotfiles_Tools
+The Bellow Readme, Belongs To The Compressed Folder named dotfiles.zip, and it has been Renamed Form Dotfiles_Tools to -> dotfiles  
+
+# dotfiles
 
 > A comprehensive dotfiles collection for Linux/macOS development environment with modern CLI tools, TUI applications, and shell configurations.
 
@@ -36,7 +38,7 @@
 ## 📁 Directory Structure
 
 ```
-Dotfiles_Tools/
+dotfiles/
 ├── install.sh           # Installation script
 ├── README.md           # This file
 ├── zsh/
@@ -65,7 +67,7 @@ Dotfiles_Tools/
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/Dotfiles_Tools.git ~/dotfiles
+git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
 
 # Run installation script
 cd ~/dotfiles
@@ -76,7 +78,7 @@ cd ~/dotfiles
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/Dotfiles_Tools.git ~/dotfiles
+git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
 
 # Link configuration files
 ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc
