@@ -48,72 +48,15 @@
         ".github/instructions": true,
         ".claude/rules": true,
         "~/.copilot/instructions": true,
-        "~/.claude/rules": true,
-        "C:\\Users\\MBSQa\\.aitk\\instructions\\": true
+        "~/.claude/rules": true
     },
     "gitlens.ai.model": "vscode",
     "gitlens.ai.vscode.model": "copilot:gpt-4.1",
-    "terminal.integrated.profiles.linux": {
-        "bash": {
-            "path": "bash",
-            "env": {
-                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/latest"
-            },
-            "args": [
-                "--rcfile",
-                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
-            ]
-        },
-        "JavaSE-17 LTS": {
-            "overrideName": true,
-            "env": {
-                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17"
-            },
-            "path": "bash",
-            "args": [
-                "--rcfile",
-                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
-            ]
-        },
-        "JavaSE-21 LTS": {
-            "overrideName": true,
-            "env": {
-                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/21"
-            },
-            "path": "bash",
-            "args": [
-                "--rcfile",
-                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
-            ]
-        },
-        "JavaSE-25 LTS": {
-            "overrideName": true,
-            "env": {
-                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/latest"
-            },
-            "path": "bash",
-            "args": [
-                "--rcfile",
-                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
-            ]
-        }
-    },
-    "terminal.integrated.defaultProfile.linux": "JavaSE-25 LTS",
-    "maven.terminal.customEnv": [
-        {
-            "environmentVariable": "JAVA_HOME",
-            "value": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
-        }
-    ],
-    "rsp-ui.rsp.java.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21",
     "workbench.colorTheme": "Cursor Dark Midnight",
     "chat.viewSessions.orientation": "stacked",
     "files.eol": "\n",
     "[bat]": {
         "files.eol": "\r\n"
-    },
-    "terminal.integrated.automationProfile.windows": {
-        "path": "cmd"
     },
     "java.test.config": {
         "vmArgs": [
@@ -121,67 +64,6 @@
             "-Dstderr.encoding=UTF-8"
         ]
     },
-    "maven.executable.path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\maven\\latest\\bin\\mvn",
-    "java.import.gradle.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\gradle\\latest",
-    "java.configuration.runtimes": [
-        {
-            "name": "JavaSE-17",
-            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17"
-        },
-        {
-            "name": "JavaSE-21",
-            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21"
-        },
-        {
-            "name": "JavaSE-25",
-            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
-            "default": true
-        }
-    ],
-    "terminal.integrated.profiles.windows": {
-        "JavaSE-17 LTS": {
-            "overrideName": true,
-            "env": {
-                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17\\bin;${env:PATH}",
-                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17"
-            },
-            "path": "cmd"
-        },
-        "JavaSE-21 LTS": {
-            "overrideName": true,
-            "env": {
-                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21\\bin;${env:PATH}",
-                "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
-                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21"
-            },
-            "path": "cmd",
-            "args": [
-                "/k",
-                "chcp",
-                "65001"
-            ]
-        },
-        "JavaSE-25 LTS": {
-            "overrideName": true,
-            "env": {
-                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest\\bin;${env:PATH}",
-                "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
-                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
-            },
-            "path": "cmd",
-            "args": [
-                "/k",
-                "chcp",
-                "65001"
-            ]
-        }
-    },
-    "terminal.integrated.defaultProfile.windows": "JavaSE-25 LTS",
-    "terminal.integrated.env.windows": {
-        "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
-        "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest\\bin;${env:PATH}"
-    },
-    "java.import.gradle.java.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
     "workbench.editorAssociations": {
         "*.ldb": "default"
     },
@@ -190,16 +72,6 @@
     "security.workspace.trust.untrustedFiles": "open",
     "dev.containers.executeInWSL": true,
     "git.autofetch": true,
-    "vs-kubernetes": {
-        "vscode-kubernetes.helm-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm",
-        "vscode-kubernetes.minikube-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube",
-        "vscode-kubernetes.kubectl-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/kubectl/kubectl",
-        "vs-kubernetes.knownKubeconfigs": [
-            "/home/mbsqa/Archon/.github/ISSUE_TEMPLATE/bug_report.yml",
-            "/home/sabir/devhome/CI-CD/CI-CD/.devcontainer/devcontainer.json"
-        ],
-        "vs-kubernetes.kubeconfig": "/home/sabir/devhome/CI-CD/CI-CD/.devcontainer/devcontainer.json"
-    },
     "python.analysis.typeCheckingMode": "standard",
     "vscode-edge-devtools.webhint": false,
     "mssql.connectionGroups": [

@@ -16,8 +16,8 @@ All three are *references*. Never `git add`, submodule, or delete them.
 
 ## Migration state (current)
 
-- Root repo: 4 commits (init plan → workflow doc → fix submodule pointers → gitignore)
-- `packages/` directory **does not exist yet** — this is the primary work
+- Root repo: 5 commits (init plan → workflow doc → fix submodule pointers → gitignore → initial migration)
+- `packages/` directory has 16 packages created from initial migration
 - The old repos sit untracked per `.gitignore` (which excludes them as `/path/`)
 
 ## Canonical docs

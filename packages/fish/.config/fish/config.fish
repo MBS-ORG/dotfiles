@@ -18,7 +18,7 @@ fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.cargo/bin
 
 # History settings
-set -gx fish_history_size 10000
+set -gx fish_max_history_size 10000
 
 # ===== TOOL INITIALIZATIONS =====
 

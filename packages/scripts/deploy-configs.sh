@@ -42,20 +42,20 @@ print_success "Backups saved to: $BACKUP_DIR"
 
 # Deploy bashrc
 print_success "Deploying .bashrc..."
-cp "$SCRIPT_DIR/ultimate-bashrc" ~/.bashrc
+cp "$SCRIPT_DIR/../bash/.bashrc" ~/.bashrc
 
 # Deploy starship config
 print_success "Deploying Starship configuration..."
 mkdir -p ~/.config
-cp "$SCRIPT_DIR/starship.toml" ~/.config/starship.toml
+cp "$SCRIPT_DIR/../starship/.config/starship.toml" ~/.config/starship.toml
 
 # Deploy tmux config
 print_success "Deploying tmux configuration..."
-cp "$SCRIPT_DIR/tmux.conf" ~/.tmux.conf
+cp "$SCRIPT_DIR/../tmux/.tmux.conf" ~/.tmux.conf
 
 # Deploy ripgrep config
 print_success "Deploying ripgrep configuration..."
-cp "$SCRIPT_DIR/ripgreprc" ~/.ripgreprc
+cp "$SCRIPT_DIR/../ripgrep/.ripgreprc" ~/.ripgreprc
 
 # Windows Terminal settings info
 print_header "Windows Terminal Configuration"
@@ -66,10 +66,10 @@ echo -e "${YELLOW}To apply Windows Terminal theme:${NC}"
 echo "1. Open Windows Terminal"
 echo "2. Press Ctrl+, to open settings"
 echo "3. Click 'Open JSON file' at bottom left"
-echo "4. Merge contents from: $SCRIPT_DIR/windows-terminal-settings.json"
+echo "4. Merge contents from: $SCRIPT_DIR/../windows-terminal/windows-terminal-settings.json"
 echo ""
 echo -e "${GREEN}Or copy this command and run in PowerShell:${NC}"
-echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
+echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/../windows-terminal/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
 
 # Install tmux plugins
 print_header "Installing Tmux Plugins"
@@ -83,6 +83,8 @@ fi
 
 # Create additional helpful scripts
 print_header "Creating Helper Scripts"
+
+mkdir -p ~/.local/bin
 
 # Quick reload script
 cat > ~/.local/bin/reload-terminal <<'EOF'
