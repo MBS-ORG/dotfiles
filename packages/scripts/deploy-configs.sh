@@ -40,22 +40,9 @@ BACKUP_DIR=~/config-backups/$(date +%Y%m%d_%H%M%S)
 
 print_success "Backups saved to: $BACKUP_DIR"
 
-# Deploy bashrc
-print_success "Deploying .bashrc..."
-cp "$SCRIPT_DIR/../bash/.bashrc" ~/.bashrc
-
-# Deploy starship config
-print_success "Deploying Starship configuration..."
-mkdir -p ~/.config
-cp "$SCRIPT_DIR/../starship/.config/starship.toml" ~/.config/starship.toml
-
-# Deploy tmux config
-print_success "Deploying tmux configuration..."
-cp "$SCRIPT_DIR/../tmux/.tmux.conf" ~/.tmux.conf
-
-# Deploy ripgrep config
-print_success "Deploying ripgrep configuration..."
-cp "$SCRIPT_DIR/../ripgrep/.ripgreprc" ~/.ripgreprc
+# Deploy all Stow-managed configuration files
+print_success "Deploying all configuration packages via Stow..."
+cd "$SCRIPT_DIR/.." && stow --restow --target="$HOME" packages/*
 
 # Windows Terminal settings info
 print_header "Windows Terminal Configuration"
@@ -119,6 +106,12 @@ esac
 EOF
 chmod +x ~/.local/bin/edit-terminal
 print_success "Created 'edit-terminal' command"
+
+# Warn if ~/.local/bin is not in PATH
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    echo -e "${YELLOW}⚠ $HOME/.local/bin is not in your PATH. Add it to ~/.bashrc:${NC}"
+    echo 'export PATH="$HOME/.local/bin:$PATH"'
+fi
 
 print_header "🎉 Configuration Deployed Successfully! 🎉"
 
