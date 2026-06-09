@@ -1,0 +1,243 @@
+{
+    "workbench.iconTheme": "vs-minimal",
+    "editor.linkedEditing": true,
+    "editor.minimap.enabled": false,
+    "editor.rulers": [
+        {
+            "column": 80,
+            "color": "#00FF0010"
+        },
+        {
+            "column": 100,
+            "color": "#BDB76B15"
+        },
+        {
+            "column": 120,
+            "color": "#FA807219"
+        }
+    ],
+    "editor.unicodeHighlight.includeComments": true,
+    "workbench.colorCustomizations": {
+        "[Default Dark Modern]": {
+            "tab.activeBorderTop": "#00FF00",
+            "tab.unfocusedActiveBorderTop": "#00FF0088",
+            "textCodeBlock.background": "#00000055"
+        },
+        "editor.wordHighlightStrongBorder": "#FF6347",
+        "editor.wordHighlightBorder": "#FFD700",
+        "editor.selectionHighlightBorder": "#A9A9A9"
+    },
+    "workbench.editor.revealIfOpen": true,
+    "emmet.variables": {
+        "lang": "en"
+    },
+    "cSpell.diagnosticLevel": "Hint",
+    "trailing-spaces.backgroundColor": "rgba(255,0,0,0.1)",
+    "trailing-spaces.includeEmptyLines": false,
+    "terminal.integrated.tabs.hideCondition": "never",
+    "terminal.integrated.enablePersistentSessions": false,
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.detectJdksAtStart": false,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.hotCodeReplace": "auto",
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.maxConcurrentBuilds": 16,
+    "java.sources.organizeImports.staticStarThreshold": 1,
+    "redhat.telemetry.enabled": true,
+    "chat.instructionsFilesLocations": {
+        ".github/instructions": true,
+        ".claude/rules": true,
+        "~/.copilot/instructions": true,
+        "~/.claude/rules": true,
+        "C:\\Users\\MBSQa\\.aitk\\instructions\\": true
+    },
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "env": {
+                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/latest"
+            },
+            "args": [
+                "--rcfile",
+                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
+            ]
+        },
+        "JavaSE-17 LTS": {
+            "overrideName": true,
+            "env": {
+                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/17"
+            },
+            "path": "bash",
+            "args": [
+                "--rcfile",
+                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
+            ]
+        },
+        "JavaSE-21 LTS": {
+            "overrideName": true,
+            "env": {
+                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/21"
+            },
+            "path": "bash",
+            "args": [
+                "--rcfile",
+                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
+            ]
+        },
+        "JavaSE-25 LTS": {
+            "overrideName": true,
+            "env": {
+                "JAVA_HOME": "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/latest"
+            },
+            "path": "bash",
+            "args": [
+                "--rcfile",
+                "/home/mbs/.config/Code/User/globalStorage/pleiades.java-extension-pack-jdk/.bashrc"
+            ]
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "JavaSE-25 LTS",
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "JAVA_HOME",
+            "value": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
+        }
+    ],
+    "rsp-ui.rsp.java.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21",
+    "workbench.colorTheme": "Cursor Dark Midnight",
+    "chat.viewSessions.orientation": "stacked",
+    "files.eol": "\n",
+    "[bat]": {
+        "files.eol": "\r\n"
+    },
+    "terminal.integrated.automationProfile.windows": {
+        "path": "cmd"
+    },
+    "java.test.config": {
+        "vmArgs": [
+            "-Dstdout.encoding=UTF-8",
+            "-Dstderr.encoding=UTF-8"
+        ]
+    },
+    "maven.executable.path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\maven\\latest\\bin\\mvn",
+    "java.import.gradle.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\gradle\\latest",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17"
+        },
+        {
+            "name": "JavaSE-21",
+            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21"
+        },
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
+            "default": true
+        }
+    ],
+    "terminal.integrated.profiles.windows": {
+        "JavaSE-17 LTS": {
+            "overrideName": true,
+            "env": {
+                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17\\bin;${env:PATH}",
+                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17"
+            },
+            "path": "cmd"
+        },
+        "JavaSE-21 LTS": {
+            "overrideName": true,
+            "env": {
+                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21\\bin;${env:PATH}",
+                "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
+                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\21"
+            },
+            "path": "cmd",
+            "args": [
+                "/k",
+                "chcp",
+                "65001"
+            ]
+        },
+        "JavaSE-25 LTS": {
+            "overrideName": true,
+            "env": {
+                "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest\\bin;${env:PATH}",
+                "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
+                "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
+            },
+            "path": "cmd",
+            "args": [
+                "/k",
+                "chcp",
+                "65001"
+            ]
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "JavaSE-25 LTS",
+    "terminal.integrated.env.windows": {
+        "JAVA_HOME": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
+        "PATH": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest\\bin;${env:PATH}"
+    },
+    "java.import.gradle.java.home": "C:\\Users\\MBSQa\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest",
+    "workbench.editorAssociations": {
+        "*.ldb": "default"
+    },
+    "security.workspace.trust.banner": "always",
+    "security.workspace.trust.startupPrompt": "always",
+    "security.workspace.trust.untrustedFiles": "open",
+    "dev.containers.executeInWSL": true,
+    "git.autofetch": true,
+    "vs-kubernetes": {
+        "vscode-kubernetes.helm-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/helm/linux-amd64/helm",
+        "vscode-kubernetes.minikube-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/minikube/linux-amd64/minikube",
+        "vscode-kubernetes.kubectl-path-linux": "/home/sabir/.var/app/com.visualstudio.code/.local/state/vs-kubernetes/tools/kubectl/kubectl",
+        "vs-kubernetes.knownKubeconfigs": [
+            "/home/mbsqa/Archon/.github/ISSUE_TEMPLATE/bug_report.yml",
+            "/home/sabir/devhome/CI-CD/CI-CD/.devcontainer/devcontainer.json"
+        ],
+        "vs-kubernetes.kubeconfig": "/home/sabir/devhome/CI-CD/CI-CD/.devcontainer/devcontainer.json"
+    },
+    "python.analysis.typeCheckingMode": "standard",
+    "vscode-edge-devtools.webhint": false,
+    "mssql.connectionGroups": [
+        {
+            "name": "ROOT",
+            "id": "EE1C6BF7-C8EB-48DC-9090-725AFB474412"
+        }
+    ],
+    "makefile.configureOnOpen": true,
+    "github.copilot.chat.virtualTools.threshold": 0,
+    "editor.formatOnSave": true,
+    "files.autoSave": "afterDelay",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.wordWrap": "bounded",
+    "mssql.autoDisableNonTSqlLanguageService": true,
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "claudeCode.preferredLocation": "panel",
+    "http.systemCertificatesNode": true,
+    "sonarlint.rules": {
+        "docker:S7028": {
+            "level": "on"
+        },
+        "docker:S2260": {
+            "level": "on"
+        },
+        "docker:S7023": {
+            "level": "on"
+        }
+    },
+    "sonarlint.automaticAnalysis": false,
+    "geminicodeassist.inlineSuggestions.enableAuto": false,
+    "docker.extension.enableComposeLanguageServer": false,
+    "window.menuBarVisibility": "classic",
+    "window.confirmSaveUntitledWorkspace": false,
+    "workbench.statusBar.visible": false
+}

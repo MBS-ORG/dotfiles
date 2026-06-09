@@ -1,4 +1,24 @@
+# === Migrated from: dotfile.d/.gitignore (base) ===
+# === Merged with:   generalized patterns ===
+# === Date:          2026-06-09 ===
+
 # Old source repos — kept for reference, not tracked
 /dotfile.d/
 /dotfiles/
 /windows-wsl-terminal-customization/
+
+# Secrets — never commit these
+gh/.config/gh/hosts.yml
+agent/.agent/*.key
+agent/.agent/*.pem
+ssh/.ssh/id_*
+ssh/.ssh/known_hosts
+ssh/.ssh/authorized_keys
+
+# Ephemeral
+*.log
+*.tmp
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc

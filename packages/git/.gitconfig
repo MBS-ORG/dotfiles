@@ -1,0 +1,60 @@
+# === Migrated from: dotfile.d/git/.gitconfig (identity) ===
+# === Merged with:   Dotfiles.zip/git/.gitconfig (delta, aliases) ===
+# === Date:          2026-06-09 ===
+
+[user]
+	name = sabir-test
+	email = sabirtest25@gmail.com
+
+[core]
+	editor = nvim
+	pager = delta
+	autocrlf = input
+
+[interactive]
+	stash = true
+
+[push]
+	default = simple
+
+[pull]
+	rebase = false
+
+[init]
+	defaultBranch = main
+
+[color]
+	ui = auto
+
+[diff]
+	color = auto
+
+[status]
+	color = auto
+
+[branch]
+	color = auto
+
+[delta]
+	navigate = true
+	theme = Dracula
+	syntax-theme = Dracula
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	ci = commit
+	unstage = reset HEAD --
+	last = log -1 HEAD --pretty=format:"%C(yellow)%h%Creset - %s (%cr)"
+	visual = log --graph --oneline --all
+	undo = reset --soft HEAD~1
+	amend = commit --amend --no-edit
+
+[credential "https://github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential

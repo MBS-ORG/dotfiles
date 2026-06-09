@@ -1,0 +1,191 @@
+# === Migrated from: Dotfiles.zip/starship/starship.toml (Catppuccin base) ===
+# === Merged with:   windows-wsl/starship.toml (modules, format) ===
+# === Date:          2026-06-09 ===
+# Theme: Catppuccin Mocha
+
+command_timeout = 1000
+scan_timeout = 30
+add_newline = true
+
+format = """
+[╭─](bold cyan)$os\
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+$aws\
+$gcloud\
+$time
+[╰─](bold cyan)$character"""
+
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[✗](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+
+[username]
+style_user = "bold #89b4fa"
+style_root = "bold red"
+format = "[$user]($style) "
+disabled = false
+show_always = true
+
+[hostname]
+ssh_only = false
+format = "[@$hostname](bold yellow) "
+disabled = false
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold #cba6f7"
+read_only = " 🔒"
+read_only_style = "red"
+truncation_symbol = "…/"
+home_symbol = "~"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+"Projects" = "󰲋 "
+
+[git_branch]
+symbol = " "
+style = "bold #f38ba8"
+format = "[$symbol$branch(:$remote_branch)]($style) "
+
+[git_status]
+style = "bold #f38ba8"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+conflicted = "⚔️ "
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?${count}"
+stashed = "📦"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[nodejs]
+symbol = " "
+style = "bold #a6e3a1"
+format = "[$symbol($version )]($style)"
+detect_files = ["package.json", ".node-version"]
+detect_folders = ["node_modules"]
+
+[python]
+symbol = " "
+style = "bold #f9e2af"
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+pyenv_version_name = true
+detect_extensions = ["py"]
+detect_files = [".python-version", "Pipfile", "pyproject.toml", "requirements.txt"]
+
+[rust]
+symbol = " "
+style = "bold #f38ba8"
+format = "[$symbol($version )]($style)"
+detect_files = ["Cargo.toml"]
+
+[golang]
+symbol = " "
+style = "bold #89dceb"
+format = "[$symbol($version )]($style)"
+detect_files = ["go.mod", "go.sum"]
+
+[docker_context]
+symbol = " "
+style = "bold #89b4fa"
+format = "[$symbol$context ]($style)"
+detect_files = ["docker-compose.yml", "Dockerfile"]
+detect_extensions = ["dockerfile"]
+only_with_files = true
+
+[aws]
+symbol = "  "
+style = "bold #f9e2af"
+format = '[$symbol($profile )(\($region\) )]($style)'
+disabled = false
+
+[gcloud]
+symbol = "☁️ "
+style = "bold #89b4fa"
+format = '[$symbol$account(@$domain)(\($region\))]($style) '
+disabled = false
+
+[kubernetes]
+symbol = "☸ "
+style = "bold #89b4fa"
+format = '[$symbol$context( \($namespace\))]($style) '
+disabled = false
+
+[time]
+disabled = false
+time_format = "%T"
+style = "bold #94e2d5"
+format = '[ $time]($style)'
+
+[os]
+disabled = false
+style = "bold white"
+
+[os.symbols]
+Ubuntu = " "
+Windows = "󰍲 "
+Arch = "󰣇 "
+Debian = " "
+Fedora = " "
+Macos = " "
+
+[status]
+disabled = false
+symbol = "🔴"
+format = '[\[$symbol $status_common_meaning$status_signal_name$status_maybe_int\]]($style) '
+
+[memory_usage]
+disabled = false
+threshold = 75
+symbol = "󰍛 "
+style = "bold dimmed white"
+format = "$symbol[${ram}( | ${swap})]($style) "
+
+[cmd_duration]
+min_time = 500
+style = "bold yellow"
+format = "[⏱ $duration]($style) "
+
+[battery]
+full_symbol = "🔋"
+charging_symbol = "⚡"
+discharging_symbol = "💀"
+disabled = false
+
+[[battery.display]]
+threshold = 10
+style = "bold red"
+
+[[battery.display]]
+threshold = 30
+style = "bold yellow"
+
+[package]
+symbol = "📦 "
+style = "bold #cba6f7"
+format = "[$symbol$version]($style) "
+disabled = false
+
+[terraform]
+symbol = "💠 "
+format = "[$symbol$workspace]($style) "
+disabled = false

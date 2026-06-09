@@ -1,0 +1,49 @@
+# ============================================================================
+# M.B.S DEV - RIPGREP CONFIGURATION
+# Smart search defaults for development
+# ============================================================================
+
+# Search hidden files/directories by default
+--hidden
+
+# Follow symbolic links
+--follow
+
+# Exclude common directories that slow down search
+--glob=!.git/*
+--glob=!node_modules/*
+--glob=!.venv/*
+--glob=!venv/*
+--glob=!__pycache__/*
+--glob=!*.pyc
+--glob=!.pytest_cache/*
+--glob=!.mypy_cache/*
+--glob=!.tox/*
+--glob=!dist/*
+--glob=!build/*
+--glob=!*.egg-info/*
+--glob=!.next/*
+--glob=!.nuxt/*
+--glob=!.cache/*
+--glob=!coverage/*
+--glob=!.coverage
+--glob=!vendor/*
+--glob=!target/*
+--glob=!.idea/*
+--glob=!.vscode/*
+--glob=!*.min.js
+--glob=!*.min.css
+
+# Smart case: case-insensitive if all lowercase, sensitive otherwise
+--smart-case
+
+# Show line numbers
+--line-number
+
+# Add color to output
+--colors=line:none
+--colors=line:style:bold
+--colors=path:fg:green
+--colors=path:style:bold
+--colors=match:fg:yellow
+--colors=match:style:bold
