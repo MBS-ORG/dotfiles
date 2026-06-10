@@ -386,7 +386,7 @@ print_header "Installation Complete"
 
 echo -e "${GREEN}All tools installed successfully!${NC}\n"
 echo -e "${YELLOW}Next steps:${NC}"
-echo -e "  1. ${CYAN}Run the deploy script:  ./packages/scripts/deploy-configs.sh${NC}"
+echo -e "  1. ${CYAN}Run the deploy script:  ./scripts/deploy-configs.sh${NC}"
 echo -e "  2. ${CYAN}Or full bootstrap:       ./install.sh${NC}"
 echo -e "  3. ${CYAN}Reload:                  exec \$SHELL${NC}"
 echo ""

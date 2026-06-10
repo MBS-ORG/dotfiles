@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # CONFIGURATION DEPLOYMENT SCRIPT
 # Applies all configuration files to your system
 ###############################################################################
 
-set -e
+set -euo pipefail
 
 # Color codes
 GREEN='\033[0;32m'

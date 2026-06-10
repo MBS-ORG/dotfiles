@@ -2,7 +2,7 @@
 # install.sh — Unified dotfiles bootstrap
 # Orchestrates tool installation + config deployment for the consolidated
 # dotfiles repository. Delegates tool installation to scripts/install-tools.sh
-# and config deployment to packages/scripts/deploy-configs.sh.
+# and config deployment to scripts/deploy-configs.sh.
 #
 # Usage: ./install.sh
 set -euo pipefail
@@ -17,7 +17,7 @@ log "Installing tools..."
 # ── 2. Stow dotfiles ─────────────────────────────────────────────────────────
 log "Deploying configuration files via Stow..."
 cd "$DOTFILES_DIR"
-for pkg in agent bash bin cursor fish gh git pam ripgrep scripts starship tmux vscode windows-terminal yazi zsh; do
+for pkg in agent bash bin cursor fish gh git pam ripgrep starship tmux vscode windows-terminal yazi zsh; do
   if [ -d "packages/$pkg" ]; then
     stow --restow --target="$HOME" "packages/$pkg" && log "  stowed: $pkg"
   fi
