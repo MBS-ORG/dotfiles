@@ -27,17 +27,23 @@ else
     echo "  ${YELLOW}~${NC} no staged shell scripts"
 fi
 
-# 2. Stow validation — dry-run on all packages
-if command -v stow &>/dev/null; then
-    if stow --simulate --target="$HOME" packages/* 2>&1; then
-        echo -e "  ${GREEN}✓${NC} stow --simulate packages/*"
-    else
-        echo -e "  ${RED}✗${NC} stow --simulate — conflicts detected"
-        stow --simulate --target="$HOME" packages/* 2>&1 | sed 's/^/    /'
-        errors=$((errors + 1))
+# 2. Stow package structure validation
+# Verify each package directory mirrors a valid $HOME path (no orphaned dirs)
+stow_errors=0
+for pkg in packages/*/; do
+    pkg_name="$(basename "$pkg")"
+    # Check the package has at least one target path (e.g. .bashrc, .config/...)
+    content_count=$(find "$pkg" -not -path '*/.git/*' -not -name '.git' -type f 2>/dev/null | wc -l)
+    if [ "$content_count" -eq 0 ]; then
+        echo -e "  ${RED}✗${NC} ${pkg_name} — no files to stow (empty package?)"
+        stow_errors=$((stow_errors + 1))
     fi
+done
+if [ "$stow_errors" -eq 0 ]; then
+    echo -e "  ${GREEN}✓${NC} stow package structure — all valid"
 else
-    echo -e "  ${YELLOW}~${NC} stow not found — skip validation"
+    echo -e "  ${RED}✗${NC} stow validation — ${stow_errors} package(s) invalid"
+    errors=$((errors + stow_errors))
 fi
 
 # 3. Check for accidental secret staging

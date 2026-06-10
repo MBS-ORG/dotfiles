@@ -42,7 +42,8 @@ print_success "Backups saved to: $BACKUP_DIR"
 
 # Deploy all Stow-managed configuration files
 print_success "Deploying all configuration packages via Stow..."
-cd "$SCRIPT_DIR/.." && stow --restow --target="$HOME" packages/*
+stow --restow --dir="$SCRIPT_DIR/../packages" --target="$HOME" \
+  agent bash bin cursor fish gh git pam ripgrep starship tmux vscode yazi zsh
 
 # Windows Terminal settings info
 print_header "Windows Terminal Configuration"

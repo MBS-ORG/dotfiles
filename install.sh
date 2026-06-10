@@ -19,7 +19,7 @@ log "Deploying configuration files via Stow..."
 cd "$DOTFILES_DIR"
 for pkg in agent bash bin cursor fish gh git pam ripgrep starship tmux vscode yazi zsh; do
   if [ -d "packages/$pkg" ]; then
-    stow --restow --target="$HOME" "packages/$pkg" && log "  stowed: $pkg"
+    stow --restow --dir="packages" --target="$HOME" "$pkg" && log "  stowed: $pkg"
   fi
 done
 

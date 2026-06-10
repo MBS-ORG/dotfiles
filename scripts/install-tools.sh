@@ -55,6 +55,26 @@ print_err()  { echo -e "${RED}✗${NC} $1"; }
 
 cmdexists() { command -v "$1" &>/dev/null; }
 
+# ── Interactive sudo ──────────────────────────────────────────────────────────
+request_sudo() {
+  if sudo -n true 2>/dev/null; then
+    return 0
+  fi
+  echo -e "\n${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  echo -e "${YELLOW}  Some steps require sudo (package installation, etc.)${NC}"
+  echo -e "${YELLOW}  Please enter your password when prompted.${NC}"
+  echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+  if ! sudo -v; then
+    echo ""
+    print_err "Sudo authentication failed. Re-run the script and try again."
+    exit 1
+  fi
+  # Keep sudo ticket alive in background
+  while true; do sudo -n true 2>/dev/null; sleep 60; kill -0 "$$" 2>/dev/null || exit; done &
+}
+
+request_sudo
+
 ###############################################################################
 # PHASE 1: System Packages
 ###############################################################################
