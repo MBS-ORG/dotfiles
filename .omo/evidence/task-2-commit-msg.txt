@@ -1,0 +1,1 @@
+d727f66 chore: remove stale gitops-initializing-with-skills.md

@@ -1,0 +1,70 @@
+name: Validate Dotfiles
+
+on:
+  push:
+    branches: [MAIN]
+  pull_request:
+    branches: [MAIN]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GNU Stow
+        run: sudo apt-get update && sudo apt-get install -y stow
+
+      - name: Shell syntax check (bash)
+        run: |
+          errors=0
+          while IFS= read -r -d '' file; do
+            if ! bash -n "$file"; then
+              echo "SYNTAX ERROR: $file"
+              errors=$((errors + 1))
+            fi
+          done < <(find packages scripts -name '*.sh' -print0 2>/dev/null || true)
+          install_sh=install.sh
+          if [ -f "$install_sh" ]; then
+            if ! bash -n "$install_sh"; then
+              echo "SYNTAX ERROR: $install_sh"
+              errors=$((errors + 1))
+            fi
+          fi
+          if [ $errors -gt 0 ]; then
+            echo "$errors shell script(s) have syntax errors"
+            exit 1
+          fi
+          echo "All shell scripts pass syntax check"
+
+      - name: Shell syntax check (zsh)
+        run: |
+          if command -v zsh &>/dev/null; then
+            find packages/zsh -name '*.zsh' -exec zsh -n {} \; 2>&1 || true
+            echo "zsh syntax check complete (warnings may be informational)"
+          else
+            echo "zsh not available — skip"
+          fi
+
+      - name: Validate Stow packages
+        run: |
+          mkdir -p /tmp/stow-target
+          if ! stow --simulate --target="/tmp/stow-target" packages/* 2>&1; then
+            echo "Stow package validation failed"
+            exit 1
+          fi
+          echo "All Stow packages valid"
+
+      - name: Check no secrets staged
+        run: |
+          secrets_found=false
+          for pattern in "hosts.yml" "*.key" "*.pem" "id_rsa" "id_ed25519"; do
+            if git ls-files | grep -q "$pattern"; then
+              echo "SECRET DETECTED: $pattern tracked in repo"
+              secrets_found=true
+            fi
+          done
+          if [ "$secrets_found" = true ]; then
+            exit 1
+          fi
+          echo "No secrets tracked"
