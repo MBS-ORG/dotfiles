@@ -18,3 +18,7 @@ __pycache__/
 .omo/evidence/
 .omo/plans/
 .omo/run-continuation/
+
+# Stale source archives (already consolidated)
+*.zip
+Staging/
