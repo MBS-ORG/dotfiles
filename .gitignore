@@ -13,3 +13,8 @@ ssh/.ssh/authorized_keys
 node_modules/
 __pycache__/
 *.pyc
+
+# AI session artifacts (regenerated per session)
+.omo/evidence/
+.omo/plans/
+.omo/run-continuation/

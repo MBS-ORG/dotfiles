@@ -53,10 +53,10 @@ echo -e "${YELLOW}To apply Windows Terminal theme:${NC}"
 echo "1. Open Windows Terminal"
 echo "2. Press Ctrl+, to open settings"
 echo "3. Click 'Open JSON file' at bottom left"
-echo "4. Merge contents from: $SCRIPT_DIR/../windows-terminal/windows-terminal-settings.json"
+echo "4. Merge contents from: $SCRIPT_DIR/../packages/windows-terminal/windows-terminal-settings.json"
 echo ""
 echo -e "${GREEN}Or copy this command and run in PowerShell:${NC}"
-echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/../windows-terminal/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
+echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/../packages/windows-terminal/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
 
 # Install tmux plugins
 print_header "Installing Tmux Plugins"
