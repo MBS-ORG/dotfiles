@@ -1,48 +1,53 @@
 # Scope: dotfiles — Shell & CLI Tool Configuration
 
 **All shell environment configs, managed with GNU Stow.**
+Consolidates 3 legacy repos into a single Stow-managed codebase.
 
 ## What belongs here
 
-- Shell configs: `.zshrc`, `config.fish`, `.bashrc`
+- Shell configs: `.zshrc`, `config.fish`, `.bashrc`, `.profile`
 - Terminal multiplexer: `.tmux.conf`
-- Prompt: `starship.toml`, Powerlevel10k config
-- Git: `.gitconfig`
-- CLI tools: yazi, btop, lazygit, atuin, fzf, zoxide, eza, bat, lazydocker
-- Editor configs (non-project-specific)
-- `install.sh` bootstrap script
+- Prompt: `starship.toml` (Catppuccin Mocha)
+- Git: `.gitconfig` (delta, aliases, gh credential helper)
+- CLI tools: yazi, ripgrep, lazygit, fzf, zoxide, eza, bat, btop
+- Editor configs: VS Code, Cursor
+- GitHub CLI: `gh/config.yml`
+- PAM environment variables
+- `install.sh` bootstrap script + `scripts/` tool installer
 
-## Target structure (tracked files, not zipped)
+## Package layout
+
+Each subdirectory under `packages/` mirrors its `$HOME` path for Stow.
+Example: `packages/git/.gitconfig` → `~/.gitconfig`
 
 ```
-dotfiles/
-├── install.sh
-├── zsh/.zshrc
-├── fish/config.fish
-├── bash/.bashrc
-├── git/.gitconfig
-├── tmux/.tmux.conf
-├── starship/starship.toml
-├── yazi/yazi.toml
-└── bin/          # custom scripts
+packages/
+├── agent/       →  ~/.agent/AGENT_VM.md
+├── bash/        →  ~/.bashrc, ~/.profile
+├── bin/         →  ~/bin/ (custom scripts)
+├── cursor/      →  ~/.config/Cursor/User/settings.json
+├── fish/        →  ~/.config/fish/config.fish
+├── gh/          →  ~/.config/gh/config.yml
+├── git/         →  ~/.gitconfig
+├── pam/         →  ~/.pam_environment
+├── ripgrep/     →  ~/.ripgreprc
+├── starship/    →  ~/.config/starship.toml
+├── tmux/        →  ~/.tmux.conf
+├── vscode/      →  ~/.config/Code/User/settings.json
+├── windows-terminal/  →  Windows Terminal settings (manual import)
+├── yazi/        →  ~/.config/yazi/yazi.toml
+└── zsh/         →  ~/.zshrc
 ```
 
-## Action required
-
-The current `Dotfiles.zip` should be **extracted and each file tracked individually** in this repo.
-This makes diffs meaningful and allows per-file history.
+## Installation
 
 ```bash
-# Extract and reorganise:
-unzip Dotfiles.zip -d dotfiles-extracted/
-# Then move each config into its Stow package directory above
-```
+# One-command deploy (new machine):
+bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/MAIN/scripts/deploy.sh)
 
-Deploy on a fresh VM:
-```bash
+# Full bootstrap:
 git clone https://github.com/Sabir-test/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
-# install.sh should run: stow zsh fish bash git tmux starship yazi
 ```
 
 ## What does NOT belong here
@@ -50,10 +55,10 @@ cd ~/dotfiles && ./install.sh
 - Project-specific editor configs → stay in project `.vscode/` or `.editorconfig`
 - Homelab/infrastructure configs → `home-template`
 - VM-specific app installs → `sandboxed-devspace`
+- Secrets, tokens, SSH keys, `.pem` files
+- Old source repos (deleted after migration)
 
 ## Used by
 
-`sandboxed-devspace` references this repo for VM bootstrap:
-```bash
-~/dotfiles/install.sh
-```
+- `sandboxed-devspace` references this repo for VM bootstrap
+- Fresh Ubuntu/macOS machines via one-command deploy

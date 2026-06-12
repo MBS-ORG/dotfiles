@@ -1,294 +1,233 @@
-The Bellow Readme, Belongs To The Compressed Folder named dotfiles.zip, and it has been Renamed Form Dotfiles_Tools to -> dotfiles  
-
 # dotfiles
 
-> A comprehensive dotfiles collection for Linux/macOS development environment with modern CLI tools, TUI applications, and shell configurations.
+> Unified dotfiles environment — GNU Stow, Catppuccin Mocha, 15 packages.
+> Consolidates 3 legacy repos into one, managed with idempotent install scripts.
 
 ---
 
-## 📋 INDEX
-
-1. [What's Included](#whats-included)
-2. [Directory Structure](#directory-structure)
-3. [Installation](#installation)
-4. [Tool Dependencies](#tool-dependencies)
-5. [Quick Start](#quick-start)
-6. [Aliases Reference](#aliases-reference)
-7. [Configuration](#configuration)
-
----
-
-## 📦 What's Included
-
-| Category | Tools |
-|----------|-------|
-| **Shells** | Zsh + Oh My Zsh, Fish Shell, Bash |
-| **History** | Atuin (sync & search) |
-| **File Management** | eza, yazi |
-| **File Viewing** | bat, fzf |
-| **System Monitoring** | btop, fastfetch |
-| **Git Tools** | lazygit, delta |
-| **Docker Tools** | lazydocker |
-| **Directory Jumping** | zoxide |
-| **Prompts** | Powerlevel10k, Starship |
-| **Terminal Multiplexer** | tmux |
-
----
-
-## 📁 Directory Structure
-
-```
-dotfiles/
-├── install.sh           # Installation script
-├── README.md           # This file
-├── zsh/
-│   └── .zshrc         # Zsh configuration
-├── fish/
-│   └── config.fish    # Fish shell configuration
-├── bash/
-│   └── .bashrc       # Bash configuration
-├── git/
-│   └── .gitconfig    # Git configuration
-├── tmux/
-│   └── .tmux.conf    # Tmux configuration
-├── starship/
-│   └── starship.toml  # Starship prompt configuration
-├── yazi/
-│   └── yazi.toml     # Yazi file manager config
-└── bin/
-                      # Custom scripts (if any)
-```
-
----
-
-## 🔧 Installation
-
-### Automated
+## Quick Deploy
 
 ```bash
-# Clone this repository
-git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
+bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/MAIN/scripts/deploy.sh)
+```
 
-# Run installation script
+Or locally:
+
+```bash
+git clone https://github.com/Sabir-test/dotfiles.git ~/dotfiles
+cd ~/dotfiles && ./install.sh
+```
+
+---
+
+## What's Included
+
+### 15 Stow Packages
+
+| Package | Target | What It Configures |
+|---------|--------|--------------------|
+| `agent` | `~/.agent/AGENT_VM.md` | VM agent specification |
+| `bash` | `~/.bashrc`, `~/.profile` | Bash environment, aliases |
+| `bin` | `~/bin/` | Custom scripts directory |
+| `cursor` | `~/.config/Cursor/User/settings.json` | Cursor editor settings |
+| `fish` | `~/.config/fish/config.fish` | Fish shell config |
+| `gh` | `~/.config/gh/config.yml` | GitHub CLI config |
+| `git` | `~/.gitconfig` | Git config (delta, aliases, credentials) |
+| `pam` | `~/.pam_environment` | PAM environment variables |
+| `ripgrep` | `~/.ripgreprc` | ripgrep config |
+| `starship` | `~/.config/starship.toml` | Starship prompt (Catppuccin Mocha) |
+| `tmux` | `~/.tmux.conf` | Tmux config (prefix: Ctrl+a, TPM) |
+| `vscode` | `~/.config/Code/User/settings.json` | VS Code settings |
+| `windows-terminal` | `windows-terminal-settings.json` | Windows Terminal settings (Gruvbox) |
+| `yazi` | `~/.config/yazi/yazi.toml` | Yazi file manager config |
+| `zsh` | `~/.zshrc` | Zsh config |
+
+### Tools Installed
+
+The `install-tools.sh` script installs the following (idempotent, Linux + macOS):
+
+| Phase | Tools |
+|-------|-------|
+| 1 — System | build-essential, curl, wget, git, tmux, zsh, fish, stow, ripgrep, fd, bat, jq, fzf, btop, direnv, make |
+| 2 — Fonts | JetBrainsMono Nerd Font, Hack Nerd Font |
+| 3 — Rust | Rust toolchain (rustup + cargo) |
+| 4 — CLI | eza, zoxide, git-delta, du-dust, procs, tealdeer |
+| 5 — Prompt | Starship |
+| 6 — FZF | fzf (git install with key bindings) |
+| 7 — Lazygit | Lazygit (latest GitHub release) |
+| 8 — GitHub CLI | gh (apt repo) |
+| 9 — Docker | Docker engine + docker group |
+| 10 — Version mgmt | mise (universal version manager) |
+| 11 — Node.js | NVM + Node.js 24 LTS |
+| 12 — Tmux | Tmux Plugin Manager (TPM) |
+
+---
+
+## Installation Methods
+
+### 1. One-Command Deploy (recommended for new machines)
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/MAIN/scripts/deploy.sh)
+```
+
+This clones the repo and runs `install.sh`. Requires `git`, `curl`, and `sudo` access.
+
+### 2. Full Bootstrap
+
+```bash
+git clone https://github.com/Sabir-test/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
 
-### Manual
+`install.sh` runs:
+1. `scripts/install-tools.sh` — installs all CLI tools, fonts, and dependencies
+2. Stow deploy — symlinks all 15 packages to `$HOME`
+3. Tmux plugin install
+4. Docker `dev-network` creation
+
+### 3. Config Only (stow, no tools)
+
+If tools are already installed, deploy just the config files:
 
 ```bash
-# Clone this repository
-git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./scripts/deploy-configs.sh
+```
 
-# Link configuration files
-ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc
-ln -sf ~/dotfiles/bash/.bashrc ~/.bashrc
-ln -sf ~/dotfiles/git/.gitconfig ~/.gitconfig
-ln -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
-ln -sf ~/dotfiles/tmux/.tmux.conf ~/.tmux.conf
-ln -sf ~/dotfiles/starship/starship.toml ~/.config/starship.toml
-ln -sf ~/dotfiles/yazi/yazi.toml ~/.config/yazi/yazi.toml
+### 4. Tool Installation Only
 
-# Restart terminal
-exec $SHELL
+```bash
+cd ~/dotfiles
+./scripts/install-tools.sh
+```
+
+This is idempotent — safe to re-run.
+
+---
+
+## Post-Install
+
+1. **Reload shell**: `exec $SHELL`
+2. **Set Git identity**: `git config --global user.name "Your Name"` / `git config --global user.email "you@example.com"`
+3. **Tmux plugins**: `prefix + I` (Ctrl+a then Shift+i) inside tmux
+4. **Docker group**: Log out and back in for docker group membership
+5. **Set terminal font**: JetBrainsMono Nerd Font Mono (or Hack Nerd Font Mono)
+
+---
+
+## Quick Reference
+
+### Aliases
+
+| Alias | Command | Source |
+|-------|---------|--------|
+| `ls` | `eza -la --icons --git` | bash/zsh |
+| `ll` | `eza -l --icons --git` | bash/zsh |
+| `la` | `eza -la --icons` | bash/zsh |
+| `y` / `yy` | `yazi` / `yazi .` | bash/zsh |
+| `g` | `lazygit` | bash/zsh |
+| `gs` / `ga` / `gc` / `gp` / `gl` / `gd` | git status/add/commit/push/pull/diff | bash/zsh |
+| `..` / `...` | `cd ..` / `cd ../..` | bash/zsh |
+| `b` | `btop` | bash/zsh |
+| `ff` | `fastfetch` | bash/zsh |
+
+### Tmux Cheatsheet
+
+| Binding | Action |
+|---------|--------|
+| `Ctrl+a` | Prefix |
+| `Prefix + c` | New window |
+| `Prefix + \|` | Split horizontal |
+| `Prefix + -` | Split vertical |
+| `Prefix + h/j/k/l` | Navigate panes |
+| `Prefix + H/J/K/L` | Resize panes |
+| `Prefix + d` | Detach |
+| `Prefix + I` | Install TPM plugins |
+| `Prefix + R` | Reload config |
+| `Prefix + s` | Choose session |
+| `Prefix + w` | Choose window |
+
+### Git Aliases
+
+| Alias | Command |
+|-------|---------|
+| `co` | checkout |
+| `br` | branch |
+| `ci` | commit |
+| `st` | status |
+| `unstage` | `reset HEAD --` |
+| `last` | `log -1 HEAD` (pretty) |
+| `visual` | `log --graph --oneline --all` |
+| `undo` | `reset --soft HEAD~1` |
+| `amend` | `commit --amend --no-edit` |
+
+---
+
+## Project Structure
+
+```
+dotfiles/
+├── install.sh                  # Full bootstrap (tools → stow → tmux → docker)
+├── scripts/
+│   ├── deploy.sh              # One-command deploy script (curl-to-bash)
+│   ├── install-tools.sh       # 12-phase idempotent tool installer
+│   └── deploy-configs.sh      # Stow-only config deployment
+├── packages/
+│   ├── bash/    .bashrc, .profile
+│   ├── git/     .gitconfig
+│   ├── zsh/     .zshrc
+│   ├── fish/    .config/fish/config.fish
+│   ├── tmux/    .tmux.conf
+│   ├── starship/ .config/starship.toml
+│   ├── yazi/    .config/yazi/yazi.toml
+│   ├── gh/      .config/gh/config.yml
+│   ├── vscode/  .config/Code/User/settings.json
+│   ├── cursor/  .config/Cursor/User/settings.json
+│   ├── ripgrep/ .ripgreprc
+│   ├── pam/     .pam_environment
+│   ├── agent/   .agent/AGENT_VM.md
+│   ├── bin/     (custom scripts directory)
+│   └── windows-terminal/  windows-terminal-settings.json
+├── .githooks/
+│   └── pre-commit           # Syntax + structure validation
+├── .github/workflows/
+│   ├── validate.yml         # CI: bash -n + stow validation
+│   └── deploy.yml           # Manual deploy trigger
+├── SCOPE.md                 # Project scope definition
+└── MIGRATION-PLAN.md        # Historical migration record
 ```
 
 ---
 
-## 🛠 Tool Dependencies
+## Configuration Highlights
 
-### Required Tools
-
-```bash
-# Install via package manager (Ubuntu/Debian)
-sudo apt install zsh git curl wget
-
-# Install via package manager (macOS)
-brew install zsh git curl wget
-```
-
-### CLI Tools
-
-```bash
-# Install eza (modern ls)
-wget https://github.com/eza-community/eza/releases/download/v0.20.0/eza_v0.20.0_x86_64-unknown-linux-gnu.tar.gz
-tar xzf eza_v0.20.0_x86_64-unknown-linux-gnu.tar.gz
-sudo mv eza /usr/local/bin/
-
-# Install bat (modern cat)
-wget https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-x86_64-unknown-linux-gnu.tar.gz
-tar xzf bat-v0.24.0-x86_64-unknown-linux-gnu.tar.gz
-sudo mv bat /usr/local/bin/
-
-# Install fzf (fuzzy finder)
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-
-# Install zoxide (smart cd)
-curl -sSf https://get.zooxide.st | sh
-
-# Install starship (prompt)
-curl -sS https://starship.rs/install.sh | sh
-
-# Install yazi (file manager)
-cargo install yazi --locked
-
-# Install btop (system monitor)
-sudo apt install btop
-
-# Install lazygit (git TUI)
-wget https://github.com/jesseduffield/lazygit/releases/download/v0.45.0/lazygit_v0.45.0_linux_amd64.tar.gz
-tar xzf lazygit_v0.45.0_linux_amd64.tar.gz
-sudo mv lazygit /usr/local/bin/
-
-# Install fastfetch (system info)
-wget https://github.com/LinusHenze/fastfetch/releases/download/v2.50.0/fastfetch-linux-amd64.tar.gz
-tar xzf fastfetch-linux-amd64.tar.gz
-sudo mv fastfetch /usr/local/bin/
-```
+- **Theme**: Catppuccin Mocha (Starship, tmux)
+- **Git diff**: delta with Dracula theme
+- **Editor**: nvim (default), VS Code / Cursor settings included
+- **Docker**: `dev-network` created on bootstrap
+- **GitHub auth**: gh credential helper configured
+- **Locale**: PAM environment variables in `pam` package
 
 ---
 
-## ⚡ Quick Start
-
-### Switch Shell
-
-```bash
-zsh    # Zsh
-fish   # Fish
-bash   # Bash
-```
-
-### Quick Aliases
-
-```bash
-ls/ll/la    # eza aliases
-cat         # bat
-yy          # yazi in current directory
-lg          # lazygit
-ld          # lazydocker
-b           # btop
-ff          # fastfetch
-```
-
-### Tmux
-
-```bash
-tmux                # Start tmux
-prefix + c           # New window
-prefix + |           # Split horizontally
-prefix + -           # Split vertically
-prefix + h/j/k/l    # Navigate panes
-prefix + d           # Detach
-```
-
----
-
-## 🔑 Aliases Reference
-
-### File Management
-
-| Alias | Command |
-|-------|---------|
-| `ls` | `eza -la --icons --git` |
-| `ll` | `eza -l --icons --git` |
-| `la` | `eza -la --icons` |
-| `lt` | `eza -lTg` |
-| `y` | `yazi` |
-| `yy` | `yazi .` |
-
-### Git
-
-| Alias | Command |
-|-------|---------|
-| `g` | `lazygit` |
-| `gs` | `git status` |
-| `ga` | `git add` |
-| `gc` | `git commit` |
-| `gp` | `git push` |
-| `gl` | `git pull` |
-| `gd` | `git diff` |
-| `gco` | `git checkout` |
-| `gb` | `git branch` |
-| `gf` | `git fetch` |
-| `gm` | `git merge` |
-| `gr` | `git rebase` |
-
-### Docker
-
-| Alias | Command |
-|-------|---------|
-| `d` | `docker` |
-| `dc` | `docker-compose` |
-| `dcu` | `docker-compose up -d` |
-| `dcd` | `docker-compose down` |
-| `dps` | `docker ps` |
-| `di` | `docker images` |
-| `dex` | `docker exec -it` |
-
-### Navigation
-
-| Alias | Command |
-|-------|---------|
-| `..` | `cd ..` |
-| `...` | `cd ../..` |
-| `~~` | `cd ~` |
-
-### System
-
-| Alias | Command |
-|-------|---------|
-| `b` | `btop` |
-| `h` | `htop` |
-| `ff` | `fastfetch` |
-
----
-
-## ⚙️ Configuration
-
-### Oh My Zsh
-
-- Edit `~/.zshrc` to modify plugins
-- Run `p10k configure` to configure Powerlevel10k
-
-### Starship
-
-- Edit `~/.config/starship.toml` to customize prompt
-- Theme: Catppuccin Mocha
-
-### Tmux
-
-- Prefix: `Ctrl+a`
-- Run `tmux` to start
-- Configuration is in `.tmux.conf`
-
-### Git
-
-- Edit `~/.gitconfig` to set your name and email
-
----
-
-## 📚 References
+## References
 
 | Tool | URL |
 |------|-----|
-| Oh My Zsh | https://github.com/ohmyzsh/ohmyzsh |
-| Powerlevel10k | https://github.com/romkatv/powerlevel10k |
+| GNU Stow | https://www.gnu.org/software/stow/ |
 | Starship | https://starship.rs |
-| Yazi | https://yazi-rs.github.io |
+| Tmux | https://github.com/tmux/tmux |
+| TPM | https://github.com/tmux-plugins/tpm |
 | Lazygit | https://github.com/jesseduffield/lazygit |
 | Eza | https://github.com/eza-community/eza |
 | Bat | https://github.com/sharkdp/bat |
 | Fzf | https://github.com/junegunn/fzf |
 | Zoxide | https://github.com/ajeetdsouza/zoxide |
-
----
-
-## 📝 License
-
-MIT License - Feel free to use and customize!
-
----
-
-**Last Updated:** April 2026
-**Version:** 2.0
+| Yazi | https://yazi-rs.github.io |
+| Ripgrep | https://github.com/BurntSushi/ripgrep |
+| Git-delta | https://github.com/dandavison/delta |
+| Mise | https://mise.jdx.dev |
+| Btop | https://github.com/aristocratos/btop |
+| Catppuccin | https://catppuccin.com |
