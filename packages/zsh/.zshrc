@@ -64,6 +64,7 @@ alias ll='eza -l --icons --git'
 alias la='eza -la --icons'
 alias lt='eza -lTg'
 alias tree='eza --tree'
+alias tr='eza --tree'
 
 # ============================================================================
 # ALIASES - File Viewing
@@ -115,8 +116,8 @@ alias h='htop'
 alias b='btop'
 alias ff='fastfetch'
 alias ports='netstat -tulanp'
-alias meminfo='free -m -l'
-alias cpuinfo='lscpu'
+alias memi='free -m -l'
+alias cpui='lscpu'
 alias myip='curl http://ipecho.net/plain; echo'
 
 # ============================================================================
@@ -130,6 +131,12 @@ alias ~~='cd ~'
 alias down='cd ~/Downloads'
 alias repos='cd ~/Repositories'
 alias desk='cd ~/Desktop'
+alias docx='cd ~/Documents'
+alias Dev='cd ~/DevHome'
+alias Pform='cd ~/DevHome/Platforms/'
+alias works='cd ~/DevHome/Workspaces/'
+alias hlab='cd ~/DevHome/Workspaces/Homelab-Workspace'
+alias SS='cd ~/DevHome/Staging-Space/'
 
 # ============================================================================
 # ALIASES - Utilities
