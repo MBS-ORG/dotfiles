@@ -1,0 +1,7 @@
+[Layout]
+DisplayNames=,
+LayoutList=us,ara
+Options=terminate:ctrl_alt_bksp,caps:ctrl_modifier
+ResetOldOptions=true
+Use=true
+VariantList=,azerty

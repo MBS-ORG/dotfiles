@@ -1,0 +1,4 @@
+--smart-case
+--colors 'match:fg:green'
+--colors 'line:fg:blue'
+--colors 'path:fg:magenta'

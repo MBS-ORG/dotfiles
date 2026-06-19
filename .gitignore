@@ -1,0 +1,33 @@
+# === Transient artifacts ===
+*.log
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+# === Machine-specific overrides ===
+**/local.zsh
+**/local.gitconfig
+**/local.toml
+**/.env
+**/.env.local
+# === Secrets ===
+**/id_*
+**/known_hosts
+**/authorized_keys
+**/*.key
+**/*.pem
+**/credentials
+**/secret*
+**/token*
+# === Caches ===
+.zcompdump*
+.zcompcache/
+.cache/
+# === Agent artifacts ===
+.opencode/
+.omo/
+# === OS / editor ===
+nohup.out
+*~
+.idea/
+.vscode/

@@ -1,0 +1,20 @@
+[General]
+LockPanels=false
+Version=202
+ViewPropsTimestamp=2026,6,3,14,45,54.63
+
+[IconsMode]
+PreviewSize=32
+
+[KFileDialog Settings]
+Places Icons Auto-resize=false
+Places Icons Static Size=32
+
+[MainWindow]
+MenuBar=Disabled
+
+[Notification Messages]
+warnAboutRisksBeforeActingAsAdmin=false
+
+[PlacesPanel]
+IconSize=32

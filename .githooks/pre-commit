@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== pre-commit: shellcheck ==="
+
+changed="$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$' || true)"
+if [[ -z "$changed" ]]; then
+  echo "  No shell scripts changed, skipping"
+  exit 0
+fi
+
+errors=0
+for f in $changed; do
+  if [[ -f "$f" ]]; then
+    if command -v shellcheck &>/dev/null; then
+      shellcheck "$f" || { echo "  FAIL: $f"; ((errors++)); }
+    else
+      echo "  WARN: shellcheck not installed, skipping $f"
+    fi
+  fi
+done
+
+if [[ $errors -gt 0 ]]; then
+  echo "  ${errors} file(s) failed shellcheck"
+  exit 1
+fi
+echo "  shellcheck passed"

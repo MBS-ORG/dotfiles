@@ -1,0 +1,13 @@
+\\.git.*
+README\\.md
+LICENSE
+scripts/
+docs/
+manifests/
+themes/
+\\.github/
+\\.githooks/
+\\.omo/
+\\.opencode/
+var/
+Dockerfile

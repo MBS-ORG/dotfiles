@@ -1,0 +1,18 @@
+[Desktop Entry]
+DefaultProfile=M.Profile.profile
+
+[General]
+ConfigVersion=1
+
+[MainWindow]
+MenuBar=Enabled
+
+[Notification Messages]
+CloseAllTabs=true
+quick-commands-question=true
+
+[SaveHistory Settings]
+Recent URLs[$e]=file:$HOME/Bugs
+
+[UiSettings]
+ColorScheme=OxygenDark

@@ -1,0 +1,11 @@
+format = "$os$username$hostname$directory$git_branch$git_status$cmd_duration$line_break$character"
+[directory]
+truncation_length = 3
+[git_branch]
+format = " on [$branch]($style)"
+[cmd_duration]
+show_milliseconds = true
+min_time = 2000
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
