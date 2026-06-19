@@ -46,6 +46,28 @@ dotfiles-projects/
 7. Changes default shell to zsh
 8. Verifies all symlinks and tool availability
 
+## Secrets & Credentials
+
+This repo follows a **template-first, local-override** credential model:
+
+| Credential | Where | Strategy |
+|---|---|---|
+| Git name/email | `packages/git/.gitconfig` | Template placeholder in staging (`mbs@localhost`); real values in machine branches or `.gitconfig.local` |
+| GPG keys | Local machine only | Never tracked. Managed via `gpg --import` outside dotfiles |
+| SSH keys | Local machine only | Never tracked. Generated per machine with `ssh-keygen` |
+| GitHub tokens | Local machine only | Stored in `~/.config/gh/hosts.yml` or env vars, never in repo |
+| API keys / tokens | Local machine only | Sourced via `local.zsh` (gitignored) or environment files |
+| `local.zsh` | `packages/zsh/.config/zsh/local.zsh` | Gitignored machine override sourced by `.zshenv` at runtime |
+| `.gitconfig.local` | `packages/git/.gitconfig.local` | Gitignored local override included via `includeIf` |
+
+**CI/CD pipeline** does not use any credentials from the repo template — GitHub Actions
+automatically sets its own git author information and uses `GITHUB_TOKEN` for authentication.
+The CI workflow only validates syntax, runs shellcheck, and performs stow dry-runs.
+
+**Enforcement**: The `.githooks/pre-commit` hook checks for patterns like `-----BEGIN.*KEY-----`
+and blocks commits containing private keys. The `.gitignore` blocks `**/id_*`, `**/*.key`,
+`**/*.pem`, `**/credentials`, `**/token*`, and `**/*secret*`.
+
 ## Tech Stack
 
 | Layer | Tool |
