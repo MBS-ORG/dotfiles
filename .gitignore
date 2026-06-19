@@ -26,6 +26,8 @@ Thumbs.db
 # === Agent artifacts ===
 .opencode/
 .omo/
+**/claude/
+**/.claude/
 # === OS / editor ===
 nohup.out
 *~

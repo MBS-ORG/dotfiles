@@ -6,6 +6,6 @@ export EDITOR='cursor'
 export VISUAL='cursor'
 export PAGER='less'
 export BROWSER='xdg-open'
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.npm-global/bin:$PATH"
 export LANG='en_US.UTF-8'
 [[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"

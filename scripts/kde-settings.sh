@@ -6,9 +6,11 @@ KDE_DST="$(cd "$(dirname "$0")/.." && pwd)/packages/kde/.config"
 
 backup() {
   echo "Backing up KDE settings → packages/kde/.config/"
-  for f in kdeglobals plasmarc kwinrc konsolerc dolphinrc \
-           kscreenlockerrc krunnerrc klipperrc spectaclerc \
-           systemmonitorrc kcmfonts kxkbrc .gtkrc-2.0; do
+  for f in kdeglobals plasmarc kwinrc kwinrulesrc kglobalshortcutsrc \
+           konsolerc dolphinrc kscreenlockerrc krunnerrc klipperrc \
+           spectaclerc systemmonitorrc kcmfonts kxkbrc kcminputrc \
+           katerc plasma-localerc plasmakeyboardrc kwalletrc \
+           .gtkrc-2.0 gtkrc; do
     if [[ -f "${KDE_SRC}/${f}" ]]; then
       cp "${KDE_SRC}/${f}" "${KDE_DST}/${f}"
       echo "  ${f}"

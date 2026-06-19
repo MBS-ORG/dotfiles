@@ -5,7 +5,7 @@
 ## Quick Start
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/mbs/dotfiles/main/scripts/bootstrap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/mbs-org/dotfiles/main/scripts/bootstrap.sh)
 ```
 
 ## Tech Stack

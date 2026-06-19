@@ -1,6 +1,7 @@
 [Daemon]
+LockGrace=0
 Timeout=30
 
 [Greeter][Wallpaper][org.kde.image][General]
-Image=file:///home/mbs/.local/share/wallpapers/WhiteSur/
-PreviewImage=file:///home/mbs/.local/share/wallpapers/WhiteSur/
+Image=file:///usr/share/wallpapers/Path/
+PreviewImage=file:///usr/share/wallpapers/Path/

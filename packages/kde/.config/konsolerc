@@ -11,8 +11,5 @@ MenuBar=Enabled
 CloseAllTabs=true
 quick-commands-question=true
 
-[SaveHistory Settings]
-Recent URLs[$e]=file:$HOME/Bugs
-
 [UiSettings]
 ColorScheme=OxygenDark

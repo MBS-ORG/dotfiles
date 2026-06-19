@@ -9,13 +9,13 @@
 ## Quick Install (one-liner)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/mbs/dotfiles/main/scripts/bootstrap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/mbs-org/dotfiles/main/scripts/bootstrap.sh)
 ```
 
 ## Manual Install
 
 ```bash
-git clone https://github.com/mbs/dotfiles ~/.config/dotfiles
+git clone https://github.com/mbs-org/dotfiles ~/.config/dotfiles
 cd ~/.config/dotfiles
 ./scripts/stow-all.sh
 ```

@@ -1,20 +1,32 @@
 [General]
+EditableUrl=true
+FilterBar=true
 LockPanels=false
+OpenExternallyCalledFolderInNewTab=true
+ShowFullPath=true
+ShowFullPathInTitlebar=true
+ShowStatusBar=FullWidth
 Version=202
 ViewPropsTimestamp=2026,6,3,14,45,54.63
 
 [IconsMode]
 PreviewSize=32
 
+[InformationPanel]
+previewsAutoPlay=true
+
 [KFileDialog Settings]
 Places Icons Auto-resize=false
 Places Icons Static Size=32
-
-[MainWindow]
-MenuBar=Disabled
 
 [Notification Messages]
 warnAboutRisksBeforeActingAsAdmin=false
 
 [PlacesPanel]
 IconSize=32
+
+[PreviewSettings]
+Plugins=audiothumbnail,windowsexethumbnail,ebookthumbnail,comicbookthumbnail,blenderthumbnail,cursorthumbnail,kraorathumbnail,opendocumentthumbnail,svgthumbnail,fontthumbnail,imagethumbnail,ffmpegthumbs,jpegthumbnail,windowsimagethumbnail,gsthumbnail,mobithumbnail,directorythumbnail,rawthumbnail,djvuthumbnail,exrthumbnail,appimagethumbnail,heif,gdk-pixbuf-thumbnailer,librsvg,evince,webp-pixbuf
+
+[UiSettings]
+ColorScheme=BreezeDark

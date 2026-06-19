@@ -2,8 +2,10 @@
 ReplayActionInHistory=true
 
 [General]
+ActionsInfoMessageShown=false
 IgnoreImages=false
+IgnoreSelection=false
 MaxClipItems=200
 SyncClipboards=true
 TimeoutForActionPopups=5
-Version=6.5.4
+Version=6.6.91

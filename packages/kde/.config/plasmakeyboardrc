@@ -1,0 +1,4 @@
+[General]
+autoCapitalizationEnabled=false
+diacriticsHoldThresholdMs=150
+keyboardNavigationEnabled=true

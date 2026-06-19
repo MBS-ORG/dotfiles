@@ -9,7 +9,7 @@ error() { printf "\033[1;31m[ERROR]\033[0m %s\n" "$*" >&2; }
 # ── Defaults ─────────────────────────────────────────────────────────────
 DRY_RUN=false
 DESKTOP=false
-REPO_URL="https://github.com/mbs/dotfiles.git"
+REPO_URL="https://github.com/mbs-org/dotfiles.git"
 REPO_DIR="${HOME}/.config/dotfiles"
 
 # ── Args ─────────────────────────────────────────────────────────────────
