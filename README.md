@@ -39,7 +39,6 @@ dotfiles-projects/
 │   ├── yazi/           # .config/yazi/
 │   ├── fish/           # .config/fish/
 │   ├── gh/             # .config/gh/
-│   ├── claude/         # .config/claude/
 │   ├── opencode/       # .config/opencode/
 │   ├── bin/            # .local/bin/
 │   ├── agent/          # .config/agent/
