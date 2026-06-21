@@ -46,7 +46,7 @@ jobs:
         run: |
           for pkg in packages/*/; do
             name=$(basename "$pkg")
-            stow --no --target=/tmp/th "$pkg" 2>&1 | head -3
+            stow --no --target=/tmp/th --dir=packages "$name" 2>&1 | head -3
             echo "  $name: OK"
           done
           echo "ALL PASSED"
