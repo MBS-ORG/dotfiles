@@ -1,0 +1,115 @@
+{
+    "workbench.iconTheme": "vs-minimal",
+    "editor.linkedEditing": true,
+    "editor.minimap.enabled": false,
+    "editor.rulers": [
+        {
+            "column": 80,
+            "color": "#00FF0010"
+        },
+        {
+            "column": 100,
+            "color": "#BDB76B15"
+        },
+        {
+            "column": 120,
+            "color": "#FA807219"
+        }
+    ],
+    "editor.unicodeHighlight.includeComments": true,
+    "workbench.colorCustomizations": {
+        "[Default Dark Modern]": {
+            "tab.activeBorderTop": "#00FF00",
+            "tab.unfocusedActiveBorderTop": "#00FF0088",
+            "textCodeBlock.background": "#00000055"
+        },
+        "editor.wordHighlightStrongBorder": "#FF6347",
+        "editor.wordHighlightBorder": "#FFD700",
+        "editor.selectionHighlightBorder": "#A9A9A9"
+    },
+    "workbench.editor.revealIfOpen": true,
+    "emmet.variables": {
+        "lang": "en"
+    },
+    "cSpell.diagnosticLevel": "Hint",
+    "trailing-spaces.backgroundColor": "rgba(255,0,0,0.1)",
+    "trailing-spaces.includeEmptyLines": false,
+    "terminal.integrated.tabs.hideCondition": "never",
+    "terminal.integrated.enablePersistentSessions": false,
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.detectJdksAtStart": false,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.hotCodeReplace": "auto",
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.maxConcurrentBuilds": 16,
+    "java.sources.organizeImports.staticStarThreshold": 1,
+    "redhat.telemetry.enabled": true,
+    "chat.instructionsFilesLocations": {
+        ".github/instructions": true,
+        ".claude/rules": true,
+        "~/.copilot/instructions": true,
+        "~/.claude/rules": true
+    },
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "workbench.colorTheme": "Cursor Dark Midnight",
+    "chat.viewSessions.orientation": "stacked",
+    "files.eol": "\n",
+    "[bat]": {
+        "files.eol": "\r\n"
+    },
+    "java.test.config": {
+        "vmArgs": [
+            "-Dstdout.encoding=UTF-8",
+            "-Dstderr.encoding=UTF-8"
+        ]
+    },
+    "workbench.editorAssociations": {
+        "*.ldb": "default"
+    },
+    "security.workspace.trust.banner": "always",
+    "security.workspace.trust.startupPrompt": "always",
+    "security.workspace.trust.untrustedFiles": "open",
+    "dev.containers.executeInWSL": true,
+    "git.autofetch": true,
+    "python.analysis.typeCheckingMode": "standard",
+    "vscode-edge-devtools.webhint": false,
+    "mssql.connectionGroups": [
+        {
+            "name": "ROOT",
+            "id": "EE1C6BF7-C8EB-48DC-9090-725AFB474412"
+        }
+    ],
+    "makefile.configureOnOpen": true,
+    "github.copilot.chat.virtualTools.threshold": 0,
+    "editor.formatOnSave": true,
+    "files.autoSave": "afterDelay",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.wordWrap": "bounded",
+    "mssql.autoDisableNonTSqlLanguageService": true,
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "claudeCode.preferredLocation": "panel",
+    "http.systemCertificatesNode": true,
+    "sonarlint.rules": {
+        "docker:S7028": {
+            "level": "on"
+        },
+        "docker:S2260": {
+            "level": "on"
+        },
+        "docker:S7023": {
+            "level": "on"
+        }
+    },
+    "sonarlint.automaticAnalysis": false,
+    "geminicodeassist.inlineSuggestions.enableAuto": false,
+    "docker.extension.enableComposeLanguageServer": false,
+    "window.menuBarVisibility": "classic",
+    "window.confirmSaveUntitledWorkspace": false,
+    "workbench.statusBar.visible": false
+}

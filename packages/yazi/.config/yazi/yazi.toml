@@ -1,0 +1,98 @@
+# ============================================================================
+# Yazi File Manager Configuration
+# ============================================================================
+
+[manager]
+sort = "natural"
+show_hidden = false
+inline_preview = true
+relative_cursor = true
+ratify_naive = true
+skip_select = true
+direction = "vertical"
+scrolloff = 2
+layout = "top"
+
+[manager][manager.dirs]
+lazy_collapse = false
+max_files = 10000
+show_preview = true
+
+[manager.filters]
+folders = "folders_first"
+
+[pwd]
+watch = false
+
+[open]
+reveal = true
+inline = true
+auto_continue = true
+
+[preview]
+image = "sixel"
+image_dead_time = 3000
+image_scale = "fit"
+width = "50%"
+sidebar_width = "50%"
+preview_width = "auto"
+cache_dir = "~/.cache/yazi"
+title_align = "left"
+max_width = 1000
+max_height = 1000
+
+[preview.markdown]
+theme = "auto"
+
+[preview.audio]
+cover = true
+fallback = false
+
+[preview.tokens]
+max = 100
+
+[tab]
+show = true
+backdrop = 15
+
+[jobs]
+multiplexer = 16
+worker = 16
+
+[yazi]
+arg = "start"
+
+[git]
+branch = "auto"
+line_status = "auto"
+repo = "auto"
+repo_root = "auto"
+cwd = "auto"
+
+[shell]
+sync = true
+arg = "start"
+
+[search]
+content_engine = "rg"
+regex_engine = "default"
+ignore = true
+
+[input]
+clear_on_esc = false
+
+[keymap]
+macros = { }
+
+[notify]
+timeout = 1000
+
+[bottom]
+last_wd = "auto"
+
+[version]
+control = "auto"
+
+# ============================================================================
+# END OF YAZI CONFIG
+# ============================================================================
