@@ -1,0 +1,24 @@
+[Keyboard]
+NumLock=0
+RepeatDelay=250
+
+[Libinput][2362][8195][ASUP1205:00 093A:2003 Mouse]
+LeftHanded=false
+PointerAcceleration=0.300
+ScrollFactor=5
+
+[Libinput][2362][8195][ASUP1205:00 093A:2003 Touchpad]
+ClickMethod=2
+DisableWhileTyping=false
+Enabled=true
+LmrTapButtonMap=false
+MiddleButtonEmulation=true
+PointerAcceleration=0.400
+ScrollFactor=3
+TapDragLock=true
+
+[Mouse]
+X11LibInputXAccelProfileFlat=true
+XLbInptAccelProfileFlat=false
+XLbInptMiddleEmulation=true
+XLbInptPointerAcceleration=0.4

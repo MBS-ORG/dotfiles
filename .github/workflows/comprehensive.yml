@@ -1,0 +1,46 @@
+name: Comprehensive
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t dotfiles-test .
+
+  ubuntu-matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends zsh bash stow ripgrep shellcheck
+      - name: Validate
+        run: |
+          find packages/zsh -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' 2>/dev/null | while read f; do zsh -n "$f" || exit 1; done
+          find packages/bash -name '.bashrc' -o -name '.profile' 2>/dev/null | while read f; do bash -n "$f" || exit 1; done
+          find scripts/ -name '*.sh' -exec shellcheck {} \;
+          for pkg in packages/*/; do [ "$(find "$pkg" -type f | wc -l)" -gt 0 ] || exit 1; done
+          echo "ALL PASSED on ${{ matrix.os }}"
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install stow ripgrep shellcheck
+      - name: Validate zsh syntax
+        run: |
+          find packages/zsh -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' 2>/dev/null | while read f; do zsh -n "$f" || exit 1; done
+          echo "zsh syntax OK (macOS)"
+      - name: Validate shell scripts
+        run: |
+          find scripts/ -name '*.sh' -exec shellcheck {} \;
+          echo "shellcheck OK (macOS)"

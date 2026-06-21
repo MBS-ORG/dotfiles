@@ -1,24 +1,37 @@
-# Secrets — never commit these
-gh/.config/gh/hosts.yml
-agent/.agent/*.key
-agent/.agent/*.pem
-ssh/.ssh/id_*
-ssh/.ssh/known_hosts
-ssh/.ssh/authorized_keys
-
-# Ephemeral
+# === Transient artifacts ===
 *.log
-*.tmp
+*.swp
+*.bak
 .DS_Store
-node_modules/
-__pycache__/
-*.pyc
-
-# AI session artifacts (regenerated per session)
-.omo/evidence/
-.omo/plans/
-.omo/run-continuation/
-
-# Stale source archives (already consolidated)
-*.zip
-Staging/
+Thumbs.db
+# === Machine-specific overrides ===
+**/local.zsh
+**/local.gitconfig
+**/local.toml
+**/.env
+**/.env.local
+# === Secrets ===
+**/id_*
+**/known_hosts
+**/authorized_keys
+**/*.key
+**/*.pem
+**/credentials
+**/secret*
+**/token*
+# === Caches ===
+.zcompdump*
+.zcompcache/
+.cache/
+# === Agent artifacts ===
+.opencode/
+.omo/
+**/claude/
+**/.claude/
+# === OS / editor ===
+nohup.out
+*~
+.idea/
+.vscode/
+.opencode/
+.omo/

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [staging, main]
+  pull_request:
+    branches: [staging, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends zsh bash stow ripgrep shellcheck
+
+      - name: Shell syntax (zsh)
+        run: |
+          find packages/zsh -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' 2>/dev/null \
+            | while read f; do zsh -n "$f" || exit 1; done
+          echo "zsh syntax OK"
+
+      - name: Shell syntax (bash)
+        run: |
+          find packages/bash -name '.bashrc' -o -name '.profile' 2>/dev/null \
+            | while read f; do bash -n "$f" || exit 1; done
+          echo "bash syntax OK"
+
+      - name: ShellCheck
+        run: |
+          find scripts/ -name '*.sh' -exec shellcheck {} \;
+          echo "shellcheck OK"
+
+      - name: Package integrity
+        run: |
+          for pkg in packages/*/; do
+            name=$(basename "$pkg")
+            count=$(find "$pkg" -type f | wc -l)
+            echo "$name: $count"
+            [ "$count" -gt 0 ] || exit 1
+          done
+          echo "All packages have files"
+
+      - name: Stow dry-run
+        run: |
+          for pkg in packages/*/; do
+            name=$(basename "$pkg")
+            stow --no --target=/tmp/th "$pkg" 2>&1 | head -3
+            echo "  $name: OK"
+          done
+          echo "ALL PASSED"

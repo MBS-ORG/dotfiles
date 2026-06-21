@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate CalVer tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H.%M.%S')"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            ## Dotfiles Release ${{ steps.tag.outputs.tag }}
+
+            Automated CalVer release triggered by push to main.
+
+            ### Changes
+            $(git log --oneline --no-decorate $(git tag --sort=-creatordate | head -1)..HEAD 2>/dev/null || git log --oneline -10)
+          generate_release_notes: false

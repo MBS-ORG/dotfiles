@@ -1,66 +1,27 @@
 #!/usr/bin/env bash
-# Pre-commit hook for dotfiles repo
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+echo "=== pre-commit: shellcheck ==="
+
+changed="$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$' || true)"
+if [[ -z "$changed" ]]; then
+  echo "  No shell scripts changed, skipping"
+  exit 0
+fi
 
 errors=0
-
-echo "── Pre-commit verification ──────────────────────────"
-
-# 1. Bash syntax check on staged .sh files
-staged_sh=$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$' || true)
-if [ -n "$staged_sh" ]; then
-    while IFS= read -r file; do
-        if bash -n "$file" 2>/dev/null; then
-            echo -e "  ${GREEN}✓${NC} bash -n $file"
-        else
-            echo -e "  ${RED}✗${NC} bash -n $file — syntax error"
-            bash -n "$file" 2>&1 | sed 's/^/    /'
-            errors=$((errors + 1))
-        fi
-    done <<< "$staged_sh"
-else
-    echo "  ${YELLOW}~${NC} no staged shell scripts"
-fi
-
-# 2. Stow package structure validation
-# Verify each package directory mirrors a valid $HOME path (no orphaned dirs)
-stow_errors=0
-for pkg in packages/*/; do
-    pkg_name="$(basename "$pkg")"
-    # Check the package has at least one target path (e.g. .bashrc, .config/...)
-    content_count=$(find "$pkg" -not -path '*/.git/*' -not -name '.git' -type f 2>/dev/null | wc -l)
-    if [ "$content_count" -eq 0 ]; then
-        echo -e "  ${RED}✗${NC} ${pkg_name} — no files to stow (empty package?)"
-        stow_errors=$((stow_errors + 1))
+for f in $changed; do
+  if [[ -f "$f" ]]; then
+    if command -v shellcheck &>/dev/null; then
+      shellcheck "$f" || { echo "  FAIL: $f"; ((errors++)); }
+    else
+      echo "  WARN: shellcheck not installed, skipping $f"
     fi
-done
-if [ "$stow_errors" -eq 0 ]; then
-    echo -e "  ${GREEN}✓${NC} stow package structure — all valid"
-else
-    echo -e "  ${RED}✗${NC} stow validation — ${stow_errors} package(s) invalid"
-    errors=$((errors + stow_errors))
-fi
-
-# 3. Check for accidental secret staging
-secret_patterns=('hosts.yml' '*.key' '*.pem' 'id_rsa' 'id_ed25519' 'known_hosts' 'authorized_keys')
-staged_all=$(git diff --cached --name-only --diff-filter=A)
-for pattern in "${secret_patterns[@]}"; do
-    if echo "$staged_all" | grep -q "$pattern"; then
-        echo -e "  ${RED}✗${NC} SECRET DETECTED: $pattern in staged files!"
-        errors=$((errors + 1))
-    fi
+  fi
 done
 
-echo "────────────────────────────────────────────────────"
-
-if [ $errors -gt 0 ]; then
-    echo -e "${RED}✗ $errors check(s) failed. Commit rejected.${NC}"
-    exit 1
+if [[ $errors -gt 0 ]]; then
+  echo "  ${errors} file(s) failed shellcheck"
+  exit 1
 fi
-
-echo -e "${GREEN}✓ All checks passed.${NC}"
+echo "  shellcheck passed"

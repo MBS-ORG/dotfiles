@@ -1,0 +1,22 @@
+[Auto Allow]
+mbs-wallet=xdg-desktop-portal
+
+[Auto Deny]
+mbs-wallet=
+
+[Wallet]
+Close When Idle=true
+Close on Screensaver=true
+Default Wallet=mbs-wallet
+Enabled=true
+First Use=false
+Idle Timeout=60
+Launch Manager=true
+Leave Manager Open=false
+Leave Open=false
+Local Wallet=mbs-wallet
+Prompt on Open=true
+Use One Wallet=false
+
+[org.freedesktop.secrets]
+apiEnabled=true
