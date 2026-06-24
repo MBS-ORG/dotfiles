@@ -1,0 +1,43 @@
+name: Deploy Smoke Test
+
+on:
+  workflow_dispatch:  # manual trigger
+  schedule:
+    - cron: '0 0 1 * *'  # monthly: verify deploy scripts still work
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GNU Stow
+        run: sudo apt-get update && sudo apt-get install -y stow
+
+      - name: Validate deploy-configs.sh (dry-run)
+        run: |
+          bash -n packages/scripts/deploy-configs.sh
+          echo "deploy-configs.sh syntax OK"
+
+      - name: Validate install.sh (dry-run)
+        run: |
+          # Non-destructive: just check syntax and simulate Stow
+          bash -n install.sh
+          echo "install.sh syntax OK"
+          mkdir -p /tmp/stow-target
+          stow --simulate --target="/tmp/stow-target" packages/*
+
+      - name: Validate install-tools.sh
+        run: |
+          bash -n scripts/install-tools.sh
+          echo "install-tools.sh syntax OK"
+
+      - name: Print deploy command for reference
+        run: |
+          echo "═══ Deploy to a new machine ═══"
+          echo "git clone git@github.com:Sabir-test/dotfiles.git ~/dotfiles"
+          echo "cd ~/dotfiles"
+          echo "./install.sh"
+          echo ""
+          echo "Or for configs only (after tools are installed):"
+          echo "./scripts/deploy-configs.sh"
