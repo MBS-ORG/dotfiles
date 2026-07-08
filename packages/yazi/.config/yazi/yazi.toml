@@ -13,7 +13,7 @@ direction = "vertical"
 scrolloff = 2
 layout = "top"
 
-[manager][manager.dirs]
+[manager.dirs]
 lazy_collapse = false
 max_files = 10000
 show_preview = true
