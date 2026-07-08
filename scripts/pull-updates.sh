@@ -8,7 +8,6 @@ REPO_ROOT="$(pwd)"
 HOSTNAME="$(hostname -s | tr '[:upper:]' '[:lower:]')"
 MACHINE_BRANCH="machine/${HOSTNAME}"
 
-current_branch="$(git rev-parse --abbrev-ref HEAD)"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M')"
 
 echo "=== Pull updates ($TIMESTAMP) ==="

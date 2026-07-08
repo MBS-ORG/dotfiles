@@ -175,7 +175,7 @@ for pkg in packages/*/; do
     ((pkg_errors++)) || true
   fi
 done
-[[ $pkg_errors -eq 0 ]] && PASS "All $(ls -d packages/*/ 2>/dev/null | wc -l) packages contain files"
+[[ $pkg_errors -eq 0 ]] && PASS "All $(find packages/ -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l) packages contain files"
 
 # ═══════════════════════════════════════════════════════════════════════
 # 4. Stow Dry-Run
