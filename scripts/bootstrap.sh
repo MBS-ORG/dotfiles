@@ -95,9 +95,31 @@ install_deps() {
 # ── Clone / Pull Repo ────────────────────────────────────────────────────
 clone_or_pull_repo() {
   if [[ -d "${REPO_DIR}/.git" ]]; then
+    run git -C "${REPO_DIR}" fetch --all
     run git -C "${REPO_DIR}" pull --rebase
   else
     run git clone "${REPO_URL}" "${REPO_DIR}"
+  fi
+}
+
+# ── Switch to Machine Branch ─────────────────────────────────────────────
+switch_to_machine_branch() {
+  local hostname branch remote_branch
+  hostname="$(hostname -s | tr '[:upper:]' '[:lower:]')"
+  branch="machine/${hostname}"
+  remote_branch="origin/${branch}"
+
+  # Check if the remote machine branch exists
+  if git -C "${REPO_DIR}" show-ref --verify "refs/remotes/${remote_branch}" &>/dev/null; then
+    info "Switching to ${branch}"
+    run git -C "${REPO_DIR}" checkout "${branch}"
+    run git -C "${REPO_DIR}" pull --rebase origin "${branch}"
+  elif git -C "${REPO_DIR}" show-ref --verify "refs/remotes/origin/staging" &>/dev/null; then
+    info "No machine branch found — creating ${branch} from staging"
+    run git -C "${REPO_DIR}" checkout -b "${branch}" "origin/staging"
+    run git -C "${REPO_DIR}" push -u origin "${branch}"
+  else
+    info "No machine or staging branch — staying on default branch"
   fi
 }
 
@@ -211,6 +233,7 @@ main() {
 
   install_deps
   clone_or_pull_repo
+  switch_to_machine_branch
   run_stow
   install_runtimes
   desktop_setup
