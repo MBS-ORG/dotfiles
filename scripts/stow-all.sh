@@ -2,7 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 for pkg in packages/*/; do
-  echo "  stow: $pkg"
-  stow -R --target="$HOME" "$pkg"
+  name=$(basename "$pkg")
+  echo "  stow: $name"
+  stow -R --target="$HOME" --dir=packages "$name"
 done
 echo "All packages stowed."

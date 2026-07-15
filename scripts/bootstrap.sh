@@ -131,7 +131,8 @@ run_stow() {
   else
     warn "stow-all.sh not found — running stow manually"
     for pkg in "${REPO_DIR}"/packages/*/; do
-      run stow -R --target="${HOME}" "$pkg"
+      name=$(basename "$pkg")
+      run stow -R --target="${HOME}" --dir="${REPO_DIR}/packages" "$name" || warn "stow failed for $name — continuing"
     done
   fi
 }

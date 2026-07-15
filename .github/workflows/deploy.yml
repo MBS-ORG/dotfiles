@@ -25,7 +25,10 @@ jobs:
           bash -n install.sh
           echo "install.sh syntax OK"
           mkdir -p /tmp/stow-target
-          stow --simulate --target="/tmp/stow-target" packages/*
+          for pkg in packages/*/; do
+            name=$(basename "$pkg")
+            stow --simulate --target="/tmp/stow-target" --dir=packages "$name"
+          done
 
       - name: Validate install-tools.sh
         run: |

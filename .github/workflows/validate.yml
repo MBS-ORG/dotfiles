@@ -49,8 +49,16 @@ jobs:
       - name: Validate Stow packages
         run: |
           mkdir -p /tmp/stow-target
-          if ! stow --simulate --target="/tmp/stow-target" packages/* 2>&1; then
-            echo "Stow package validation failed"
+          errors=0
+          for pkg in packages/*/; do
+            name=$(basename "$pkg")
+            if ! stow --simulate --target="/tmp/stow-target" --dir=packages "$name" 2>&1; then
+              echo "Stow validation failed: $name"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "Stow package validation failed for $errors package(s)"
             exit 1
           fi
           echo "All Stow packages valid"
