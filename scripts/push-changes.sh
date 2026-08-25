@@ -21,7 +21,7 @@ if git diff --quiet && git diff --cached --quiet; then
 fi
 
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M')"
-git add -A
+git add -u
 git commit -m "auto: ${TIMESTAMP} — ${HOSTNAME} sync"
 git push origin "${MACHINE_BRANCH}"
 echo "Pushed ${MACHINE_BRANCH} at ${TIMESTAMP}"

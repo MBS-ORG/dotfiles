@@ -30,8 +30,9 @@ print_header "Deploying Configuration Files"
 
 # Backup existing configs
 print_success "Creating backups of existing configs..."
-mkdir -p "$HOME/config-backups/$(date +%Y%m%d_%H%M%S)"
-BACKUP_DIR=~/config-backups/$(date +%Y%m%d_%H%M%S)
+TS="$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="$HOME/config-backups/$TS"
+mkdir -p "$BACKUP_DIR"
 
 [ -f ~/.bashrc ] && cp ~/.bashrc "$BACKUP_DIR/bashrc.bak"
 [ -f ~/.tmux.conf ] && cp ~/.tmux.conf "$BACKUP_DIR/tmux.conf.bak"
@@ -42,8 +43,10 @@ print_success "Backups saved to: $BACKUP_DIR"
 
 # Deploy all Stow-managed configuration files
 print_success "Deploying all configuration packages via Stow..."
-stow --restow --dir="$SCRIPT_DIR/../packages" --target="$HOME" \
-  agent bash bin cursor fish gh git pam ripgrep starship tmux vscode yazi zsh
+for pkg in "$SCRIPT_DIR"/../packages/*/; do
+  name=$(basename "$pkg")
+  stow --restow --dir="$SCRIPT_DIR/../packages" --target="$HOME" "$name" || warn "stow failed for $name — continuing"
+done
 
 # Windows Terminal settings info
 print_header "Windows Terminal Configuration"
@@ -57,7 +60,11 @@ echo "3. Click 'Open JSON file' at bottom left"
 echo "4. Merge contents from: $SCRIPT_DIR/../packages/windows-terminal/windows-terminal-settings.json"
 echo ""
 echo -e "${GREEN}Or copy this command and run in PowerShell:${NC}"
-echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/../packages/windows-terminal/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  echo -e "${BLUE}cp $(wslpath -w "$SCRIPT_DIR/../packages/windows-terminal/windows-terminal-settings.json") \$env:LOCALAPPDATA\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe\\LocalState\\${NC}"
+else
+  echo -e "${YELLOW}  (WSL only — copy manually on native Linux/macOS)${NC}"
+fi
 
 # Install tmux plugins
 print_header "Installing Tmux Plugins"

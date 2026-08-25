@@ -35,7 +35,7 @@ if command -v bash &>/dev/null; then
   while IFS= read -r f; do
     rel="${f#"$(pwd)"/}"
     if bash -n "$f"; then info "  bash: OK $rel"; else error "  bash: FAIL $f"; ((errors++)); fi
-  done < <(find packages/bash -name '.bashrc' -o -name '.profile' 2>/dev/null)
+  done < <(find packages/bash \( -name '.bashrc' -o -name '.profile' -o -name '.bash_logout' \) 2>/dev/null)
 fi
 
 echo ""

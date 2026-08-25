@@ -368,7 +368,7 @@ print_header "Phase 11: NVM + Node.js"
 
 if [ ! -d "$HOME/.nvm" ]; then
   print_info "Installing NVM..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.16/install.sh | bash
   print_ok "NVM installed"
 else
   print_info "NVM already installed, skipping"

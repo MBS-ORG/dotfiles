@@ -17,10 +17,9 @@ log "Installing tools..."
 # ── 2. Stow dotfiles ─────────────────────────────────────────────────────────
 log "Deploying configuration files via Stow..."
 cd "$DOTFILES_DIR"
-for pkg in agent bash bin cursor fish gh git pam ripgrep starship tmux vscode yazi zsh; do
-  if [ -d "packages/$pkg" ]; then
-    stow --restow --dir="packages" --target="$HOME" "$pkg" && log "  stowed: $pkg"
-  fi
+for pkg in packages/*/; do
+  name=$(basename "$pkg")
+  stow --restow --dir="packages" --target="$HOME" "$name" && log "  stowed: $name"
 done
 
 # ── 3. Tmux plugin install ───────────────────────────────────────────────────

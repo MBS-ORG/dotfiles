@@ -13,9 +13,9 @@ TIMESTAMP="$(date '+%Y-%m-%d %H:%M')"
 echo "=== Pull updates ($TIMESTAMP) ==="
 
 # Stash any local changes before switching branches
-if ! git diff --quiet || ! git diff --cached --quiet; then
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
   echo "Stashing local changes..."
-  git stash push -m "auto-stash before pull ${TIMESTAMP}"
+  git stash push --include-untracked -m "auto-stash before pull ${TIMESTAMP}"
   stashed=true
 else
   stashed=false

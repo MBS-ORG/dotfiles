@@ -24,6 +24,7 @@ Thumbs.db
 .zcompcache/
 .cache/
 # === Agent artifacts ===
+# .opencode/ = repo-level agent config (NOT the stow package at packages/opencode/)
 .opencode/
 .omo/
 **/claude/

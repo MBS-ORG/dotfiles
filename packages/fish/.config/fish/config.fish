@@ -145,7 +145,7 @@ end
 # ===== KEY BINDINGS =====
 
 # fzf key bindings
-fzf_key_bindings
+type -q fzf_key_bindings && fzf_key_bindings
 
 # ============================================================================
 # END OF FISH CONFIG

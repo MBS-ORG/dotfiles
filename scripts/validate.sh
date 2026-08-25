@@ -288,7 +288,7 @@ else
   if command -v python3 &>/dev/null; then
     while IFS= read -r f; do
       rel="${f#"$REPO_ROOT"/}"
-      if python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
+      if python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" 2>/dev/null; then
         $VERBOSE && PASS "json: $rel"
       else
         FAIL "Invalid JSON: $rel"
@@ -305,7 +305,7 @@ else
       rel="${f#"$REPO_ROOT"/}"
       if python3 -c "
 import json, re, sys
-with open('$f') as fh:
+with open(sys.argv[1]) as fh:
     raw = fh.read()
 # Remove full-line comments and trailing // comments, but keep ://
 stripped = re.sub(r'(?<!:)//.*', '', raw)
@@ -313,7 +313,7 @@ try:
     json.loads(stripped)
 except json.JSONDecodeError:
     sys.exit(1)
-" 2>/dev/null; then
+" "$f" 2>/dev/null; then
         $VERBOSE && PASS "jsonc: $rel"
       else
         FAIL "Invalid JSONC: $rel"
@@ -336,7 +336,7 @@ except ImportError:
         import tomli as tomllib
     except ImportError:
         sys.exit(2)
-with open('$f', 'rb') as fh:
+with open(sys.argv[1], 'rb') as fh:
     tomllib.load(fh)
 " 2>/dev/null; then
         $VERBOSE && PASS "toml: $rel"

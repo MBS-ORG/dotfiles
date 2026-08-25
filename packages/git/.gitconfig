@@ -29,5 +29,5 @@
     autoSetupRemote = true
 [init]
     defaultBranch = main
-[includeIf "gitdir:~/.config/dotfiles/"]
+[includeIf "gitdir:~/dotfiles/"]
     path = .gitconfig.local

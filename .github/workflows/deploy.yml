@@ -16,7 +16,7 @@ jobs:
 
       - name: Validate deploy-configs.sh (dry-run)
         run: |
-          bash -n packages/scripts/deploy-configs.sh
+          bash -n scripts/deploy-configs.sh
           echo "deploy-configs.sh syntax OK"
 
       - name: Validate install.sh (dry-run)
