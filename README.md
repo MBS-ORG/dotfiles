@@ -1,100 +1,422 @@
 # Dotfiles — Configuration as Code
 
-> Declarative, stow-managed dotfiles with multi-machine support.
+> Declarative, Stow-managed dotfiles with multi-machine support.
+> Consolidates 3 legacy repos into a single Stow-managed codebase.
 
 ## Quick Start
 
+### One-command bootstrap
+
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/mbs-org/dotfiles/main/scripts/bootstrap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/main/scripts/bootstrap.sh)
 ```
 
-## Tech Stack
+### Manual install
+
+```bash
+git clone https://github.com/Sabir-test/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./scripts/stow-all.sh
+```
+
+### Bootstrap flags
+
+| Flag | Description |
+|------|-------------|
+| `--help` | Show help |
+| `--dry-run` | Log what would happen, don't execute |
+| `--desktop` | Full desktop setup (fonts, KDE, GUI tools) |
+| `--headless` | Server/SSH-only setup (minimal deps) |
+
+### Post-install checklist
+
+- [ ] Restart shell or `exec zsh`
+- [ ] Verify `git status` shows no unexpected changes
+- [ ] Run `./scripts/doctor.sh` for health check
+- [ ] Run `./scripts/drift-detect.sh` for symlink audit
+- [ ] Create `local.zsh` for machine-specific overrides
+- [ ] Set `user.email` to real email in `local.gitconfig`
+
+---
+
+## What This Repo Is
+
+A **migration workspace** that consolidates 3 separate dotfiles repositories into a single unified dotfiles repo managed by GNU Stow. This is NOT a working dotfiles deployment — it is the factory floor.
+
+### Source repositories (historical, deleted after migration)
+
+| Repo | Manager | Theme | Shells | Key features |
+|------|---------|-------|--------|-------------|
+| `dotfile.d/` | GNU Stow (7 packages) | None | Bash | VM infra, editor configs, PAM locale, agent governance |
+| `dotfiles/` | `ln -sf` (+ Stow staging zip) | Catppuccin Mocha | Zsh+Fish+Bash | Rich TUI tools (lazygit, yazi, btop, tmux), modern CLIs, Starship |
+| `windows-wsl-terminal-customization/` | `ln -sf` | Gruvbox Dark | Bash (Oh-My-Bash) | Windows Terminal, 50+ aliases, TPM, ripgreprc, 2-script bootstrap |
+
+### What belongs here
+
+- Shell configs: `.zshrc`, `config.fish`, `.bashrc`, `.profile`
+- Terminal multiplexer: `.tmux.conf`
+- Prompt: `starship.toml` (Catppuccin Mocha)
+- Git: `.gitconfig` (delta, aliases, gh credential helper)
+- CLI tools: yazi, ripgrep, lazygit, fzf, zoxide, eza, bat, btop
+- Editor configs: VS Code, Cursor
+- GitHub CLI: `gh/config.yml`
+- PAM environment variables
+- `install.sh` bootstrap script + `scripts/` tool installer
+
+### What does NOT belong here
+
+- Project-specific editor configs → stay in project `.vscode/` or `.editorconfig`
+- Homelab/infrastructure configs → `home-template`
+- VM-specific app installs → `sandboxed-devspace`
+- Secrets, tokens, SSH keys, `.pem` files
+- Old source repos (deleted after migration)
+
+---
+
+## Architecture
+
+### Core principles
+
+1. **GNU Stow** — Each package mirrors the HOME directory tree exactly. `stow -t $HOME packages/<name>` creates a symlink farm.
+2. **XDG Compliance** — All configs use `$XDG_CONFIG_HOME` (default `~/.config/`).
+3. **Idempotency** — Every script and bootstrap step can be re-run safely.
+4. **Machine Overrides** — Gitignored `local.*` files are sourced at runtime, never committed.
+5. **Portability** — Linux-first, with cross-platform support for macOS and WSL2.
+
+### Shell architecture
+
+```
+.zshenv (home)              # Sets ZDOTDIR → ~/.config/zsh/
+  └── .config/zsh/.zshenv   # XDG vars, PATH, EDITOR
+       └── .config/zsh/.zshrc   # History, completions, aliases, tools
+            └── .config/zsh/local.zsh  # Machine overrides (gitignored)
+```
+
+- Login shells source `.zshenv` → redirects `ZDOTDIR` → sources config-level `.zshenv` → invokes `.zshrc`.
+- Non-login interactive shells source `.zshrc` directly (via `ZDOTDIR`).
+- Bash is a fallback: `.bashrc` execs into Zsh if available.
+
+### Repository tree
+
+```
+dotfiles/
+├── packages/              # Stow packages (symlink targets)
+│   ├── agent/       →  ~/.config/agent/
+│   ├── bash/        →  ~/.bashrc, ~/.profile
+│   ├── bin/         →  ~/.local/bin/
+│   ├── cursor/      →  ~/.config/Cursor/User/settings.json
+│   ├── fish/        →  ~/.config/fish/
+│   ├── gh/          →  ~/.config/gh/
+│   ├── git/         →  ~/.gitconfig
+│   ├── kde/         →  ~/.config/{kdeglobals,kwinrc,...}
+│   ├── opencode/    →  ~/.config/opencode/
+│   ├── pam/         →  ~/.pam_environment
+│   ├── ripgrep/     →  ~/.ripgreprc
+│   ├── starship/    →  ~/.config/starship.toml
+│   ├── tmux/        →  ~/.tmux.conf
+│   ├── vscode/      →  ~/.config/Code/User/
+│   ├── windows-terminal/  →  Windows Terminal (manual import)
+│   ├── yazi/        →  ~/.config/yazi/
+│   └── zsh/         →  ~/.zshenv, ~/.config/zsh/
+├── scripts/               # Bootstrap, stow, drift-detect, doctor, update
+├── manifests/             # dpkg/flatpak/cargo/npm listings
+├── .github/workflows/     # CI: shellcheck, syntax, stow dry-run, Docker
+├── .githooks/             # pre-commit (shellcheck), post-merge (stow)
+├── Dockerfile             # CI validation image
+├── install.sh             # Orchestrator: tools → stow → tmux plugins → Docker
+└── .stow-local-ignore     # Files stow should skip
+```
+
+### Bootstrap pipeline
+
+1. `bootstrap.sh` detects OS and desktop environment
+2. Installs system deps (stow, zsh, git, curl)
+3. Clones or pulls the dotfiles repo
+4. Runs `stow-all.sh` to symlink every package
+5. Installs runtime managers (fnm, rustup)
+6. Installs shell tools (starship, zoxide, eza, ripgrep, delta, tmux)
+7. Changes default shell to zsh
+8. Verifies all symlinks and tool availability
+
+### Secrets & credentials
+
+This repo follows a **template-first, local-override** credential model:
+
+| Credential | Where | Strategy |
+|---|---|---|
+| Git name/email | `packages/git/.gitconfig` | Template placeholder (`mbs@localhost`); real values in machine branches or `.gitconfig.local` |
+| GPG keys | Local machine only | Never tracked. Managed via `gpg --import` outside dotfiles |
+| SSH keys | Local machine only | Never tracked. Generated per machine with `ssh-keygen` |
+| GitHub tokens | Local machine only | Stored in `~/.config/gh/hosts.yml` or env vars, never in repo |
+| API keys / tokens | Local machine only | Sourced via `local.zsh` (gitignored) or environment files |
+| `local.zsh` | `packages/zsh/.config/zsh/local.zsh` | Gitignored machine override sourced by `.zshenv` at runtime |
+| `.gitconfig.local` | `packages/git/.gitconfig.local` | Gitignored local override included via `includeIf` |
+
+**Enforcement**: The `.githooks/pre-commit` hook checks for patterns like `-----BEGIN.*KEY-----` and blocks commits containing private keys. The `.gitignore` blocks `**/id_*`, `**/*.key`, `**/*.pem`, `**/credentials`, `**/token*`, and `**/*secret*`.
+
+### Tech stack
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
+| Package manager | GNU Stow | Symlink management |
 | Shell | Zsh + Starship | Interactive shell + prompt |
-| Shell | Bash | POSIX fallback |
-| Terminal | tmux | Terminal multiplexer |
+| Fallback shell | Bash | POSIX compatibility |
+| Multiplexer | tmux | Terminal multiplexer |
 | Editor | Cursor / VS Code | Primary editor |
-| Search | ripgrep | File search |
-| File mgr | yazi | Terminal file browser |
-| Font | Nerd Font | Icon glyphs |
-| Dotfile mgr | GNU Stow | Symlink management |
-| Config lang | TOML / INI / YAML | Tool configs |
+| File search | ripgrep | Fast text search |
+| File browser | yazi | Terminal file browser |
+| Prompt | Starship | Cross-shell prompt |
+| CD | zoxide | Smart directory jumping |
+| Diff | git-delta | Enhanced git diff |
+| Env vars | direnv | Per-directory environment |
 
-## Repository Structure
+---
+
+## Package Reference
+
+| Package | Stow Target | Key Files | Description |
+|---------|-------------|-----------|-------------|
+| `agent/` | `~/.config/agent/` | `AGENT_VM.md` | AI agent governance rules |
+| `bash/` | `~/` | `.bashrc`, `.profile`, `.bash_logout` | Bash shell (fallback, execs to zsh) |
+| `bin/` | `~/.local/bin/` | Custom scripts | Personal scripts and binaries |
+| `cursor/` | `~/.config/Cursor/User/` | `settings.json` | Cursor editor settings |
+| `fish/` | `~/.config/fish/` | `config.fish` | Fish shell configuration |
+| `gh/` | `~/.config/gh/` | `config.yml` | GitHub CLI configuration |
+| `git/` | `~/` | `.gitconfig` | Git config (delta, aliases, rebase) |
+| `kde/` | `~/.config/` | `kdeglobals`, `kwinrc`, `kwinrulesrc`, etc. | KDE Plasma desktop settings |
+| `opencode/` | `~/.config/opencode/` | `opencode.json`, `tui.json`, `dcp.jsonc` | OpenCode agent config |
+| `pam/` | `~/` | `.pam_environment` | PAM locale environment |
+| `ripgrep/` | `~/` | `.ripgreprc` | ripgrep configuration |
+| `starship/` | `~/.config/` | `starship.toml` | Starship prompt (Catppuccin Mocha) |
+| `tmux/` | `~/` | `.tmux.conf` | tmux multiplexer config |
+| `vscode/` | `~/.config/Code/User/` | `settings.json` | VS Code editor settings |
+| `windows-terminal/` | (manual import) | `windows-terminal-settings.json` | Windows Terminal profiles/theme |
+| `yazi/` | `~/.config/yazi/` | `yazi.toml` | Terminal file manager |
+| `zsh/` | `~/.zshenv`, `~/.config/zsh/` | `.zshenv`, `.zshrc`, `.zshenv` (redirect) | Zsh shell (primary) |
+
+---
+
+## KDE Settings
+
+Tracked KDE configuration files in `packages/kde/.config/`:
+
+| Category | Files | Purpose |
+|----------|-------|---------|
+| **Appearance** | `kdeglobals`, `kcmfonts`, `.gtkrc-2.0`, `gtkrc` | Theme, colors, icons, fonts, animations, DPI, GTK integration |
+| **Window Manager** | `kwinrc`, `kwinrulesrc`, `kglobalshortcutsrc` | Compositor, effects, tiling, virtual desktops, keyboard shortcuts |
+| **Plasma Desktop** | `plasmarc`, `plasma-localerc`, `plasmakeyboardrc` | Shell settings, locale, on-screen keyboard |
+| **Input Devices** | `kcminputrc`, `kxkbrc` | Keyboard repeat, mouse/touchpad, keyboard layouts |
+| **Applications** | `dolphinrc`, `konsolerc`, `katerc`, `klipperrc`, `spectaclerc`, `systemmonitorrc`, `krunnerrc`, `kscreenlockerrc` | Individual app configs |
+| **Security** | `kwalletrc` | KDE Wallet (auto-close, idle timeout) |
+
+### KDE backup/restore
+
+```bash
+# Backup from live system → packages/kde/.config/
+./scripts/kde-settings.sh backup
+
+# Restore from packages/kde/.config/ → live system
+./scripts/kde-settings.sh restore
+```
+
+### Machine-specific KDE files (NOT tracked)
+
+| File | Reason |
+|------|--------|
+| `kwinoutputconfig.json` | Hardware-specific display EDIDs, serial numbers, resolution configs |
+| `kdeconnect/` | Certificates, private keys for KDE Connect pairing |
+| `plasma-org.kde.plasma.desktop-appletsrc` | Panel layout, widget positions, screen-specific geometry |
+| `KDE/UserFeedback.conf` | Per-machine usage data |
+| `kactivitymanagerd-pluginsrc` | Activity manager session state |
+| `kactivitymanagerd-statsrc` | Activity scoring (cache) |
+
+---
+
+## Configuration Management
+
+### Machine-specific configs
+
+| File | Strategy | Why |
+|------|----------|-----|
+| `packages/kde/.config/kwinrc` | Machine branch override | Desktop UUIDs, tiling layout IDs differ per machine |
+| `packages/kde/.config/plasmarc` | Machine branch override | Activity UUIDs differ per machine |
+| `packages/kde/.config/kdeglobals` | Machine branch override | May have machine-specific settings |
+| `packages/git/.gitconfig` | Machine branch (user section) or `.gitconfig.local` | Name/email per machine |
+| `packages/zsh/.config/zsh/local.zsh` | `.gitignore`d local file | Machine-specific env vars, PATH, secrets |
+| `packages/starship/.config/starship.local.toml` | `.gitignore`d local file | Machine-specific prompt config |
+
+**Rule of thumb**: If a file has machine-specific *structure* (like kwinrc UUIDs that get regenerated entirely), track it in a machine branch. If it has machine-specific *values you append* (like local.zsh sourcing secrets), use the gitignored local override pattern.
+
+### Syncing KDE configs across machines
+
+```bash
+# Step 1: Backup from source machine
+./scripts/kde-settings.sh backup
+
+# Step 2: Commit to feature branch
+git checkout -b feature/update-kde-configs
+git add packages/kde/
+git commit -m "feat(kde): sync kwinrc, kdeglobals, plasmakeyboardrc"
+git push -u origin feature/update-kde-configs
+
+# Step 3: Deploy to target machine (after merge)
+git pull
+./scripts/stow-package.sh kde
+# WARNING: stow will symlink — verify KDE layouts after re-login
+```
+
+---
+
+## Workflow & Branching
+
+### Single-branch strategy
 
 ```
-dotfiles-projects/
-├── packages/           # Stow packages — each mirrors $HOME
-│   ├── bash/           # .bashrc, .profile, .bash_logout
-│   ├── zsh/            # .zshenv → .config/zsh/.zshenv, .zshrc
-│   ├── git/            # .gitconfig
-│   ├── tmux/           # .tmux.conf
-│   ├── ripgrep/        # .ripgreprc
-│   ├── starship/       # .config/starship.toml
-│   ├── kde/            # .config/{kdeglobals,kwinrc,…}
-│   ├── cursor/         # .config/cursor/
-│   ├── vscode/         # .config/Code/User/
-│   ├── yazi/           # .config/yazi/
-│   ├── fish/           # .config/fish/
-│   ├── gh/             # .config/gh/
-│   ├── opencode/       # .config/opencode/
-│   ├── bin/            # .local/bin/
-│   ├── agent/          # .config/agent/
-│   └── windows-terminal/ # Windows Terminal config
-├── scripts/            # Automation scripts
-├── docs/               # Documentation
-├── manifests/          # Installed-package manifests
-├── .github/workflows/  # CI/CD pipelines
-└── .githooks/          # Git hooks
+main  ●──────●──────●──────●────  (stable, deployable)
 ```
- 
-## Branch Strategy
 
-- When The installer Scripts Got executed, The Main Remote Branch Will Got Cloned Localy. orign/main > local/main. 
+Only one branch. All work happens on `main`. No feature branches, no migration branches — the migration is complete, and this repo is now in maintenance/iteration mode.
 
-- Then after The Enviroment got Initlazed, The Local/main should opens A PR From The orign/Main. 
+If you need to experiment with a risky change, commit on `main` but do not push until stable, or use a local branch that you squash-merge back.
 
-- This new opened Remote PR Branch will be The Head/orgin Remote Branch For the local/main. 
+### Commit convention
 
-- So Basicly The <orign/main> -> "will cloned Localy" <local/main> -> "The Local Main cannot push backwords To orgin/main, so he will Create a Remote PR. and This Remote PR will Be Renamed dynamicly Based on The HostName & branch Creations following formula: {$Hostname#$PR_NO#$DATE} where the Date will be Formated as [%DD-%MM-%YYYY]  for eg: the hostname in This env is 'asustufgamingf15fx507zc4fx507zc4' so The Remote brnach should be Named: <asustufgamingf15fx507zc4fx507zc4#PR1#21-06-2026>
+```
+<type>: <short description>
 
-and in This Case The Remote Branches Will Be: 
+[optional body — details on conflicts resolved, decisions made]
+```
 
-| Branch |
-|--------|
-| `main` |  
-|`asustufgamingf15fx507zc4fx507zc4#PR1#21-06-2026` | 
+| Type | When to use |
+|------|-------------|
+| `feat` | Adding a new config, package, or feature |
+| `fix` | Fixing a broken config, path, or syntax |
+| `docs` | Changes to docs, README, workflow |
+| `refactor` | Restructuring packages, renaming, reorganizing |
+| `chore` | .gitignore, git config, tooling, CI, hooks |
 
-*** The gitops cycle will be ***: 
+### Examples
 
-`main`= Can be Cloned, abut No Direct Pushes or merges, only me can merge a Feature into it From The sub Branches.  
+```
+feat: add macOS Homebrew paths to bash/.bashrc
+fix: correct neovim binary name in bash aliases
+docs: update README with current package count
+chore: add pre-commit hooks for Stow validation
+```
 
-Recives and Pulls The main branch update, when ever i release an update on the main branch.  ->`asustufgamingf15fx507zc4fx507zc4#PR1#21-06-2026` <-Synced-with-> the Local branch at This env. 
+### Pre-commit verification
 
-But he cannot push code changes back to main. 
+1. **Git status is clean** — no untracked secrets, no dirty submodules
+2. **Stow packages are valid** — `stow --simulate --target="$HOME" packages/*` succeeds
+3. **Configs syntax-check** — `bash -n`, `zsh -n`, `tmux -c "list-keys"`, etc. on changed files
+4. **CI passes** — GitHub Actions validates on push
 
---------------------------------------
+### CI/CD pipeline
 
-- local and asustufgamingf15fx507zc4fx507zc4#PR1#21-06-2026 sync methoeds and How to automate the git commits and Puushs:  
+#### PR checks (all PRs)
 
-here is were i would like to utlize the OS Settings to runsa scripts, at a specific circumestance, eg; i can setup a scripts thats will commits and pushs at Restarts, also when loging out, Bettery status and power prfiles ...etc. 
-also i set another scripts to pull changes from Remote at every system starups...etc  
-for more in depth oveorview and Gudies about this archtecture, you can search web looking for devolopers wikis comuunites, and you will find The ones Detiled this CI/CD workflow. 
+See `.github/workflows/ci.yml` — runs on every PR to `main`:
 
+- **Shellcheck**: validates all `.sh` scripts
+- **Stow dry-run**: verifies all packages can be stowed without conflicts
+- **Docker build**: validates the development container
+- **Manifest freshness**: checks that `manifests/dpkg.txt` is up-to-date
 
-## Machine Overrides
+#### Comprehensive checks (scheduled + manual)
 
-Create `local.zsh`, `local.gitconfig`, or `local.toml` in the respective package — these are gitignored and sourced automatically.
+See `.github/workflows/comprehensive.yml`:
 
-## Prerequisites
+- Multi-OS shell syntax validation (Ubuntu, macOS, Arch Linux)
+- Full Docker-based bootstrap dry-run
+- Drift detection simulation
 
-- GNU Stow (package: `stow`)
-- Zsh 5.8+
-- Git 2.30+
-- curl
+#### Release workflow
+
+See `.github/workflows/release.yml`:
+
+1. Triggered by manual dispatch
+2. Runs all CI checks
+3. Creates a CalVer tag: `vYYYY.MM.DD-HH.MM.SS`
+
+### Remote
+
+```
+origin  github.com/Sabir-test/dotfiles
+```
+
+Push to `main` directly. If the push introduces a regression, fix it in the next commit — no revert-and-branch ceremony needed for a personal dotfiles repo.
+
+---
+
+## Development
+
+### Adding a new package
+
+```bash
+# 1. Create package directory (mirrors $HOME path)
+mkdir -p packages/<name>/.config/<app>/
+
+# 2. Add config files
+cp ~/.config/<app>/settings.json packages/<name>/.config/<app>/
+
+# 3. Test with stow
+./scripts/stow-package.sh <name>
+
+# 4. Verify symlinks
+ls -la ~/.<config-path>
+
+# 5. Commit
+git add packages/<name>/
+git commit -m "feat(<name>): add <name> package"
+```
+
+### Validation tools
+
+```bash
+# Shell syntax checks
+bash -n packages/bash/.bashrc
+zsh -n packages/zsh/.config/zsh/.zshrc
+
+# Stow dry-run (from repo root)
+stow --simulate --target="$HOME" packages/*
+
+# Full validation suite
+./scripts/validate.sh
+
+# Health check
+./scripts/doctor.sh
+
+# Symlink audit
+./scripts/drift-detect.sh
+
+# Update & re-stow
+./scripts/update.sh
+```
+
+### Updating manifests
+
+```bash
+# Regenerate installed-package manifests
+./scripts/manifest-gen.sh
+```
+
+---
+
+## Troubleshooting
+
+### Common issues
+
+| Problem | Solution |
+|---------|----------|
+| `stow: ERROR: Slashes are not permitted in package names` | Use `--dir=packages` flag: `stow --dir=packages "$name"` |
+| Shell not switching to zsh | Run `chsh -s $(which zsh)` or check `.bashrc` guard: `[[ $- == *i* ]]` |
+| KDE layouts reset after stow | Re-login to KDE, then restore UUIDs from `machine/<hostname>` branch |
+| `fish` errors on startup | Check `fzf_key_bindings` guard: `type -q fzf_key_bindings && fzf_key_bindings` |
+| `wslpath` not found | Script assumes WSL2 — run on native Linux/macOS |
+| CI workflow not triggering | Check branch name case (`main` not `MAIN`) |
+
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT

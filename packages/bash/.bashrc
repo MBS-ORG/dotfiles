@@ -1,2 +1,2 @@
 export EDITOR=cursor
-[ -f /usr/bin/zsh ] && exec zsh
+[[ $- == *i* ]] && [ -f /usr/bin/zsh ] && exec zsh

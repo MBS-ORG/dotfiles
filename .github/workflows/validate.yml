@@ -2,9 +2,9 @@ name: Validate Dotfiles
 
 on:
   push:
-    branches: [MAIN]
+    branches: [main]
   pull_request:
-    branches: [MAIN]
+    branches: [main]
 
 jobs:
   validate:
@@ -40,8 +40,8 @@ jobs:
       - name: Shell syntax check (zsh)
         run: |
           if command -v zsh &>/dev/null; then
-            find packages/zsh -name '*.zsh' -exec zsh -n {} \; 2>&1 || true
-            echo "zsh syntax check complete (warnings may be informational)"
+            find packages/zsh -name '*.zsh' -exec zsh -n {} \; 2>&1
+            echo "zsh syntax check complete"
           else
             echo "zsh not available — skip"
           fi
