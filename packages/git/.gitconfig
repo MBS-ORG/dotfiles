@@ -1,6 +1,6 @@
 [user]
-    name = mbs
-    email = mbs@localhost
+    name = sabir-test
+    email = sabirtest25@gmail.com
 [alias]
     s = status
     l = log --oneline --graph
