@@ -81,8 +81,7 @@ ignore = true
 [input]
 clear_on_esc = false
 
-[keymap]
-macros = { }
+[keymap.macros]
 
 [notify]
 timeout = 1000

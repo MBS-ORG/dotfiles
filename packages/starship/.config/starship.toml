@@ -1,4 +1,8 @@
 format = "$os$username$hostname$directory$git_branch$git_status$cmd_duration$line_break$character"
+
+[os]
+disabled = false
+
 [directory]
 truncation_length = 3
 [git_branch]
