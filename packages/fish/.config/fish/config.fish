@@ -5,8 +5,8 @@
 # ===== ENVIRONMENT =====
 
 # Set default editor
-set -gx EDITOR nvim
-set -gx VISUAL nvim
+set -gx EDITOR cursor
+set -gx VISUAL cursor
 
 # XDG Base Directory
 set -gx XDG_CONFIG_HOME "$HOME/.config"
@@ -26,7 +26,9 @@ set -gx fish_max_history_size 10000
 starship init fish | source
 
 # Atuin history
-atuin init fish | source
+if type -q atuin
+    atuin init fish | source
+end
 
 # zoxide
 zoxide init fish | source
@@ -51,13 +53,13 @@ alias tree 'eza --tree'
 
 # ===== ALIASES - File Viewing =====
 
-alias cat 'bat'
-alias catn 'bat --number'
+type -q bat && alias cat 'bat'
+type -q bat && alias catn 'bat --number'
 alias less 'bat'
 
 # ===== ALIASES - Git =====
 
-alias g 'lazygit'
+type -q lazygit && alias g 'lazygit'
 alias gs 'git status'
 alias ga 'git add'
 alias gc 'git commit'
@@ -87,9 +89,9 @@ alias dlog 'docker logs -f'
 
 # ===== ALIASES - System =====
 
-alias h 'htop'
-alias b 'btop'
-alias ff 'fastfetch'
+type -q htop && alias h 'htop'
+type -q btop && alias b 'btop'
+type -q fastfetch && alias ff 'fastfetch'
 alias ports 'netstat -tulanp'
 alias myip 'curl http://ipecho.net/plain; echo'
 
@@ -105,19 +107,18 @@ alias desk 'cd ~/Desktop'
 
 # ===== ALIASES - Utilities =====
 
-alias v 'nvim'
-alias n 'nvim'
-alias vim 'nvim'
+alias v 'cursor'
+alias n 'cursor'
+alias vim 'cursor'
 alias code 'code .'
 alias cls 'clear'
 
 # ===== ALIASES - Shortcuts =====
 
-alias lg 'lazygit'
-alias ld 'lazydocker'
-alias y 'yazi'
-alias yy 'yazi .'
-alias f 'fzf --preview="bat --color=always {}"'
+type -q lazygit && alias lg 'lazygit'
+type -q lazydocker && alias ld 'lazydocker'
+type -q yazi && alias yy 'yazi .'
+type -q fzf && alias f 'fzf --preview="bat --color=always {}"'
 
 # ===== FISHER PLUGINS =====
 

@@ -141,12 +141,12 @@ run_stow() {
 install_runtimes() {
   # fnm (Node version manager)
   if ! command -v fnm &>/dev/null; then
-    run curl -fsSL https://fnm.vercel.app/install | bash
+    run bash -c 'tmpfile=$(mktemp) && curl -fsSL https://fnm.vercel.app/install -o "$tmpfile" && bash "$tmpfile" && rm -f "$tmpfile"'
   else
     info "fnm already installed"
   fi
 
-  # rustup
+  # NOTE: rustup recommends curl | sh — acceptable supply-chain risk
   if ! command -v rustup &>/dev/null; then
     run curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   else

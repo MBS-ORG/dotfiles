@@ -8,7 +8,7 @@ truncation_length = 3
 [git_branch]
 format = " on [$branch]($style)"
 [cmd_duration]
-show_milliseconds = true
+subsecond_enabled = true
 min_time = 2000
 [character]
 success_symbol = "[❯](green)"

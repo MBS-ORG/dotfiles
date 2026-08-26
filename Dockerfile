@@ -9,4 +9,4 @@ RUN echo "=== zsh syntax ===" && find packages/zsh -name '*.zsh' -o -name '.zshr
 RUN echo "=== bash syntax ===" && find packages/bash -name '.bashrc' -o -name '.profile' 2>/dev/null | while read f; do bash -n "$f" || exit 1; done && echo "OK"
 RUN echo "=== shellcheck ===" && find scripts/ -name '*.sh' -exec shellcheck {} \; && echo "OK"
 RUN echo "=== Package integrity ===" && for pkg in packages/*/; do name=$(basename "$pkg"); count=$(find "$pkg" -type f | wc -l); echo "$name: $count"; [ "$count" -gt 0 ] || exit 1; done && echo "OK"
-RUN echo "=== Stow dry-run ===" && for pkg in packages/*/; do name=$(basename "$pkg"); stow --no --target=/tmp/th --dir=packages "$name" 2>&1 | head -3; echo "  $name: OK"; done && echo "ALL PASSED"
+RUN echo "=== Stow dry-run ===" && for pkg in packages/*/; do name=$(basename "$pkg"); stow --simulate --target=/tmp/th --dir=packages "$name" || exit 1; echo "  $name: OK"; done && echo "ALL PASSED"

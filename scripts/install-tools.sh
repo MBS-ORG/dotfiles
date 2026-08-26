@@ -169,6 +169,7 @@ print_header "Phase 3: Rust Toolchain"
 
 if ! cmdexists cargo; then
   print_info "Installing Rust toolchain..."
+  # NOTE: rustup recommends curl | sh — acceptable supply-chain risk
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   # Source for the remainder of this script
   if [ -f "$HOME/.cargo/env" ]; then
@@ -218,7 +219,9 @@ if ! cmdexists zoxide; then
   print_info "Installing zoxide..."
   if [ "$IS_LINUX" -eq 1 ]; then
     # Use the official installer (detects platform)
-    if curl -sSf https://zoxide.joev.io/install.sh | sh 2>/dev/null; then
+    tmpfile=$(mktemp)
+    if curl -fsSL https://zoxide.joev.io/install.sh -o "$tmpfile" 2>/dev/null && sh "$tmpfile" 2>/dev/null; then
+      rm -f "$tmpfile"
       print_ok "zoxide installed"
     else
       print_warn "zoxide installer failed, falling back to cargo..."
@@ -259,7 +262,9 @@ print_header "Phase 5: Starship Prompt"
 
 if ! cmdexists starship; then
   print_info "Installing Starship..."
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  tmpfile=$(mktemp)
+  curl -fsSL https://starship.rs/install.sh -o "$tmpfile" && sh "$tmpfile" -- -y
+  rm -f "$tmpfile"
   print_ok "Starship installed"
 else
   print_info "Starship already installed ($(starship --version 2>/dev/null | head -1))"
@@ -355,7 +360,9 @@ print_header "Phase 10: mise"
 
 if ! cmdexists mise; then
   print_info "Installing mise..."
-  curl https://mise.run | sh
+  tmpfile=$(mktemp)
+  curl -fsSL https://mise.run -o "$tmpfile" && sh "$tmpfile"
+  rm -f "$tmpfile"
   print_ok "mise installed"
 else
   print_info "mise already installed, skipping"
@@ -368,7 +375,9 @@ print_header "Phase 11: NVM + Node.js"
 
 if [ ! -d "$HOME/.nvm" ]; then
   print_info "Installing NVM..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.16/install.sh | bash
+  tmpfile=$(mktemp)
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.16/install.sh -o "$tmpfile" && bash "$tmpfile"
+  rm -f "$tmpfile"
   print_ok "NVM installed"
 else
   print_info "NVM already installed, skipping"

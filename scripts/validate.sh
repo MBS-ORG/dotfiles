@@ -326,7 +326,7 @@ except json.JSONDecodeError:
   if command -v python3 &>/dev/null; then
     while IFS= read -r f; do
       rel="${f#"$REPO_ROOT"/}"
-      if python3 -c "
+      python3 -c "
 import sys
 try:
     import tomllib
@@ -338,9 +338,11 @@ except ImportError:
         sys.exit(2)
 with open(sys.argv[1], 'rb') as fh:
     tomllib.load(fh)
-" 2>/dev/null; then
+" "$f" 2>/dev/null
+      rc=$?
+      if [[ $rc -eq 0 ]]; then
         $VERBOSE && PASS "toml: $rel"
-      elif [[ $? -eq 2 ]]; then
+      elif [[ $rc -eq 2 ]]; then
         break  # no TOML parser available at all
       else
         FAIL "Invalid TOML: $rel"

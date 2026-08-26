@@ -23,6 +23,10 @@ print_success() {
     echo -e "${GREEN}✓ $1${NC}"
 }
 
+warn() {
+    echo -e "${YELLOW}⚠ $1${NC}"
+}
+
 # Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -82,7 +86,7 @@ print_header "Creating Helper Scripts"
 mkdir -p ~/.local/bin
 
 # Quick reload script
-cat > ~/.local/bin/reload-terminal <<'EOF'
+[[ -f ~/.local/bin/reload-terminal ]] || cat > ~/.local/bin/reload-terminal <<'EOF'
 #!/bin/bash
 source ~/.bashrc
 echo "✓ Terminal configuration reloaded!"
@@ -91,7 +95,7 @@ chmod +x ~/.local/bin/reload-terminal
 print_success "Created 'reload-terminal' command"
 
 # Quick config edit script
-cat > ~/.local/bin/edit-terminal <<'EOF'
+[[ -f ~/.local/bin/edit-terminal ]] || cat > ~/.local/bin/edit-terminal <<'EOF'
 #!/bin/bash
 case "$1" in
     bash|bashrc)

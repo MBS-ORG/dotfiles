@@ -1,6 +1,6 @@
 [user]
-    name = sabir-test
-    email = sabirtest25@gmail.com
+    name = mbs
+    email = mbs@localhost
 [alias]
     s = status
     l = log --oneline --graph
@@ -29,5 +29,5 @@
     autoSetupRemote = true
 [init]
     defaultBranch = main
-[includeIf "gitdir:~/dotfiles/"]
+[includeIf "gitdir:~/.config/dotfiles/"]
     path = .gitconfig.local

@@ -33,6 +33,7 @@ cd ~/dotfiles
 - [ ] Restart shell or `exec zsh`
 - [ ] Verify `git status` shows no unexpected changes
 - [ ] Run `./scripts/doctor.sh` for health check
+- [ ] Run `./scripts/validate.sh` for full validation
 - [ ] Run `./scripts/drift-detect.sh` for symlink audit
 - [ ] Create `local.zsh` for machine-specific overrides
 - [ ] Set `user.email` to real email in `local.gitconfig`

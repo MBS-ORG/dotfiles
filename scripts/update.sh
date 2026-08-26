@@ -14,7 +14,11 @@ git fetch --all
 echo "2. Rebasing staging..."
 if git show-ref --quiet "refs/heads/staging"; then
   git checkout staging
-  git rebase origin/staging
+  if git show-ref --verify "refs/remotes/origin/staging" &>/dev/null; then
+    git rebase origin/staging
+  else
+    echo "WARNING: origin/staging not found, skipping rebase"
+  fi
 elif git show-ref --verify "refs/remotes/origin/staging" &>/dev/null; then
   git checkout -b staging origin/staging
 else

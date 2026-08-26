@@ -7,7 +7,7 @@ root="$(git rev-parse --show-toplevel)"
 script="${root}/scripts/validate.sh"
 
 if [[ -x "$script" ]]; then
-  "$script" --quick
+  "$script" --quick --strict
   echo "  pre-commit validation passed"
 else
   echo "  WARN: validate.sh not found, skipping"

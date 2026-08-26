@@ -43,7 +43,7 @@
     "java.dependency.packagePresentation": "hierarchical",
     "java.maxConcurrentBuilds": 16,
     "java.sources.organizeImports.staticStarThreshold": 1,
-    "redhat.telemetry.enabled": true,
+    "redhat.telemetry.enabled": false,
     "chat.instructionsFilesLocations": {
         ".github/instructions": true,
         ".claude/rules": true,
