@@ -23,7 +23,7 @@ set -gx fish_max_history_size 10000
 # ===== TOOL INITIALIZATIONS =====
 
 # Starship prompt
-starship init fish | source
+type -q starship && starship init fish | source
 
 # Atuin history
 if type -q atuin
@@ -31,7 +31,7 @@ if type -q atuin
 end
 
 # zoxide
-zoxide init fish | source
+type -q zoxide && zoxide init fish | source
 
 # direnv
 if type -q direnv
@@ -45,17 +45,19 @@ end
 
 # ===== ALIASES - File Management =====
 
-alias ls 'eza -la --icons --git'
-alias ll 'eza -l --icons --git'
-alias la 'eza -la --icons'
-alias lt 'eza -lTg'
-alias tree 'eza --tree'
+if type -q eza
+    alias ls 'eza -la --icons --git'
+    alias ll 'eza -l --icons --git'
+    alias la 'eza -la --icons'
+    alias lt 'eza -lTg'
+    alias tree 'eza --tree'
+end
 
 # ===== ALIASES - File Viewing =====
 
 type -q bat && alias cat 'bat'
 type -q bat && alias catn 'bat --number'
-alias less 'bat'
+type -q bat && alias less 'bat'
 
 # ===== ALIASES - Git =====
 
@@ -78,9 +80,9 @@ alias glog 'git log --oneline --graph --decorate'
 # ===== ALIASES - Docker =====
 
 alias d 'docker'
-alias dc 'docker-compose'
-alias dcu 'docker-compose up -d'
-alias dcd 'docker-compose down'
+alias dc 'docker compose'
+alias dcu 'docker compose up -d'
+alias dcd 'docker compose down'
 alias di 'docker images'
 alias dps 'docker ps'
 alias dpsa 'docker ps -a'
@@ -92,8 +94,8 @@ alias dlog 'docker logs -f'
 type -q htop && alias h 'htop'
 type -q btop && alias b 'btop'
 type -q fastfetch && alias ff 'fastfetch'
-alias ports 'netstat -tulanp'
-alias myip 'curl http://ipecho.net/plain; echo'
+alias ports 'ss -tulanp'
+alias myip 'curl -s https://ipecho.net/plain; echo'
 
 # ===== ALIASES - Navigation =====
 

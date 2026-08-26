@@ -22,5 +22,4 @@ alias gd='git diff' gco='git checkout' gcb='git checkout -b'
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
-# Overrides
-[[ -f "$ZDOTDIR/local.zsh" ]] && source "$ZDOTDIR/local.zsh"
+# Overrides (already sourced in .zshenv — do not duplicate here)

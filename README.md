@@ -14,8 +14,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/main/scr
 ### Manual install
 
 ```bash
-git clone https://github.com/Sabir-test/dotfiles.git ~/dotfiles
-cd ~/dotfiles
+git clone https://github.com/Sabir-test/dotfiles.git ~/.config/dotfiles
+cd ~/.config/dotfiles
 ./scripts/stow-all.sh
 ```
 
@@ -270,13 +270,17 @@ git pull
 
 ## Workflow & Branching
 
-### Single-branch strategy
+### Branch strategy
 
 ```
-main  ●──────●──────●──────●────  (stable, deployable)
+main    ●──────●──────●──────●────  (stable, deployable)
+staging ●──────●──────●────         (integration)
+machine/hostname ●──────●           (per-machine overrides)
 ```
 
-Only one branch. All work happens on `main`. No feature branches, no migration branches — the migration is complete, and this repo is now in maintenance/iteration mode.
+- `main` — stable, deployable
+- `staging` — integration branch (auto-created by bootstrap)
+- `machine/<hostname>` — per-machine overrides (auto-created by bootstrap on first run)
 
 If you need to experiment with a risky change, commit on `main` but do not push until stable, or use a local branch that you squash-merge back.
 
