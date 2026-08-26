@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 info()  { printf "\033[1;34m[INFO]\033[0m  %s\n" "$*"; }
 warn()  { printf "\033[1;33m[WARN]\033[0m  %s\n" "$*"; }
@@ -19,7 +19,7 @@ for tool in zsh bash git stow tmux rg curl starship eza zoxide delta; do
     info "  ${tool}: $(command -v "$tool")"
   else
     warn "  ${tool}: not found"
-    ((errors++))
+    ((errors++)) || true
   fi
 done
 
@@ -28,13 +28,13 @@ echo "── Shell Syntax ──────────────────
 if command -v zsh &>/dev/null; then
   while IFS= read -r f; do
     rel="${f#"$(pwd)"/}"
-    if zsh -n "$f"; then info "  zsh: OK $rel"; else error "  zsh: FAIL $f"; ((errors++)); fi
+    if zsh -n "$f"; then info "  zsh: OK $rel"; else error "  zsh: FAIL $f"; ((errors++)) || true; fi
   done < <(find packages/zsh -name '*.zsh' -o -name '.zshrc' -o -name '.zshenv' 2>/dev/null)
 fi
 if command -v bash &>/dev/null; then
   while IFS= read -r f; do
     rel="${f#"$(pwd)"/}"
-    if bash -n "$f"; then info "  bash: OK $rel"; else error "  bash: FAIL $f"; ((errors++)); fi
+    if bash -n "$f"; then info "  bash: OK $rel"; else error "  bash: FAIL $f"; ((errors++)) || true; fi
   done < <(find packages/bash \( -name '.bashrc' -o -name '.profile' -o -name '.bash_logout' \) 2>/dev/null)
 fi
 
@@ -44,7 +44,7 @@ broken=0
 while IFS= read -r link; do
   if [[ ! -e "$link" ]]; then
     warn "  Broken: ${link}"
-    ((broken++))
+    ((broken++)) || true
   fi
 done < <(find "${HOME}" -maxdepth 3 -type l -xtype l 2>/dev/null | head -30)
 if [[ $broken -eq 0 ]]; then info "  All symlinks OK"; else warn "  ${broken} broken symlink(s)"; fi
@@ -55,7 +55,7 @@ if git diff --stat --exit-code &>/dev/null; then
   info "  Working tree: clean"
 else
   warn "  Working tree: dirty"
-  ((errors++))
+  ((errors++)) || true
 fi
 
 echo ""
