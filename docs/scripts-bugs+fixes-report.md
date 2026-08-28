@@ -409,3 +409,56 @@ done
 - `stow.sh --os linux` prints the informational warning and proceeds correctly
 - `$OS` is set in `main()` (bootstrap.sh:221) before `install_deps()` (line 225) — confirmed order for issue 4
 
+---
+
+## Verification Results
+
+**Date:** 2026-08-28
+**Commits:** `2c0aa49` (consolidation refactor), `49f1068` (bug fixes)
+**Validator:** `validate.sh --verbose` + manual per-issue spot-checks + PII scan
+
+### Automated Validation
+
+| Check | Result |
+|-------|--------|
+| Shell syntax (bash — all scripts, hooks, configs, install.sh) | ✅ All pass |
+| Shell syntax (zsh — .zshrc/.zshenv) | ✅ All pass |
+| JSON validation | ✅ 5/5 files parse |
+| TOML validation | ✅ 2/2 files parse |
+| JSONC validation | ✅ 1/1 files parse |
+| Package integrity | ✅ All 17 packages contain files |
+| Stow dry-run | ✅ All 17 packages stowable |
+| Required tools | ✅ All present |
+| Git hooks syntax | ✅ All valid |
+| Config file formats | ✅ All parse correctly |
+| **validate.sh result** | **⚠️ 1 FAIL — Dockerfile build (environmental)** |
+
+The single `validate.sh` failure is `Dockerfile: build failed` — caused by a network/registry error (HTTP 403 pulling `ubuntu:24.04` from Docker Hub), unrelated to any fix. No dotfiles / Dockerfile / config content was modified by this audit.
+
+### Manual Spot-Checks
+
+| Issue | What Was Checked | Result |
+|-------|-----------------|--------|
+| #1 verify() abort | 8× `((errors++)) || true` present; 0 bare `((errors++))); fi` remain | ✅ |
+| #2 broken-symlink abort | `((broken_symlinks++)) || true` present | ✅ |
+| #3 lazygit URL/arch | `jq -r '.tag_name'` + `$ARCH`-based `lg_arch`; no `grep '"tag_name":'` remains | ✅ |
+| #4 install_deps re-detect | `local os="${OS:-$(detect_os)}"` present | ✅ |
+| #5 stow.sh --os dead param | informational warning line present; `--os linux` run emits warning + stows | ✅ |
+| #6 sudo keep-alive leak | `SUDO_KEEPER_PID` set at `$!` and killed in `cleanup()`; loop uses `break` | ✅ |
+| #7 verify eza/starship | always-validate (no `if $DESKTOP` wrapper) | ✅ |
+| #8 redundant CLEANUP | inline `unzip`/`rm` without `CLEANUP_FILES+=` | ✅ |
+| #9 cargo filter | `grep -v '^path:'` robust filter present | ✅ |
+| #10 rustup hardening | both call sites download-to-tmpfile-then-execute | ✅ |
+
+### Doctor Check
+
+⏭️ `doctor.sh` does not exist — removed as part of the script consolidation (superseded by `validate.sh`).
+
+### PII/Secrets Scan
+
+```
+git diff --cached | grep -inE 'password|secret|api.?key|token|credential|PRIVATE|gmail|hotmail|@.*\.(com|org|net)'
+```
+Result: **CLEAN** — matches only the repo's own clone URL (`git@github.com:Sabir-test/dotfiles.git` in README/install.sh) and a doc note about intentionally gitignoring secrets. No credentials, tokens, keys, or emails leaked.
+
+
