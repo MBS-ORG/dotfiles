@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # install.sh — Unified dotfiles bootstrap
 # Orchestrates tool installation + config deployment for the consolidated
-# dotfiles repository. Delegates tool installation to scripts/install-tools.sh
-# and config deployment to scripts/deploy-configs.sh.
+# dotfiles repository. Delegates tool installation to scripts/install-tools.sh.
 #
 # Usage: ./install.sh
 set -euo pipefail

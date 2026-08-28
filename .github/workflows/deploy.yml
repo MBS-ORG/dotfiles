@@ -14,21 +14,20 @@ jobs:
       - name: Install GNU Stow
         run: sudo apt-get update && sudo apt-get install -y stow
 
-      - name: Validate deploy-configs.sh (dry-run)
+      - name: Validate stow.sh (dry-run)
         run: |
-          bash -n scripts/deploy-configs.sh
-          echo "deploy-configs.sh syntax OK"
-
-      - name: Validate install.sh (dry-run)
-        run: |
-          # Non-destructive: just check syntax and simulate Stow
-          bash -n install.sh
-          echo "install.sh syntax OK"
+          bash -n scripts/stow.sh
+          echo "stow.sh syntax OK"
           mkdir -p /tmp/stow-target
           for pkg in packages/*/; do
             name=$(basename "$pkg")
             stow --simulate --target="/tmp/stow-target" --dir=packages "$name"
           done
+
+      - name: Validate install.sh (dry-run)
+        run: |
+          bash -n install.sh
+          echo "install.sh syntax OK"
 
       - name: Validate install-tools.sh
         run: |
@@ -38,9 +37,6 @@ jobs:
       - name: Print deploy command for reference
         run: |
           echo "═══ Deploy to a new machine ═══"
-          echo "git clone git@github.com:Sabir-test/dotfiles.git ~/dotfiles"
-          echo "cd ~/dotfiles"
+          echo "git clone git@github.com:Sabir-test/dotfiles.git ~/.config/dotfiles"
+          echo "cd ~/.config/dotfiles"
           echo "./install.sh"
-          echo ""
-          echo "Or for configs only (after tools are installed):"
-          echo "./scripts/deploy-configs.sh"

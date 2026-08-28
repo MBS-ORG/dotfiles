@@ -16,7 +16,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Sabir-test/dotfiles/main/scr
 ```bash
 git clone https://github.com/Sabir-test/dotfiles.git ~/.config/dotfiles
 cd ~/.config/dotfiles
-./scripts/stow-all.sh
+./scripts/stow.sh
 ```
 
 ### Bootstrap flags
@@ -32,9 +32,7 @@ cd ~/.config/dotfiles
 
 - [ ] Restart shell or `exec zsh`
 - [ ] Verify `git status` shows no unexpected changes
-- [ ] Run `./scripts/doctor.sh` for health check
 - [ ] Run `./scripts/validate.sh` for full validation
-- [ ] Run `./scripts/drift-detect.sh` for symlink audit
 - [ ] Create `local.zsh` for machine-specific overrides
 - [ ] Set `user.email` to real email in `local.gitconfig`
 
@@ -119,7 +117,7 @@ dotfiles/
 │   ├── windows-terminal/  →  Windows Terminal (manual import)
 │   ├── yazi/        →  ~/.config/yazi/
 │   └── zsh/         →  ~/.zshenv, ~/.config/zsh/
-├── scripts/               # Bootstrap, stow, drift-detect, doctor, update
+├── scripts/               # Bootstrap, stow, pull-updates, push-changes, validate
 ├── manifests/             # dpkg/flatpak/cargo/npm listings
 ├── .github/workflows/     # CI: shellcheck, syntax, stow dry-run, Docker
 ├── .githooks/             # pre-commit (shellcheck), post-merge (stow)
@@ -133,7 +131,7 @@ dotfiles/
 1. `bootstrap.sh` detects OS and desktop environment
 2. Installs system deps (stow, zsh, git, curl)
 3. Clones or pulls the dotfiles repo
-4. Runs `stow-all.sh` to symlink every package
+4. Runs `stow.sh` to symlink every package
 5. Installs runtime managers (fnm, rustup)
 6. Installs shell tools (starship, zoxide, eza, ripgrep, delta, tmux)
 7. Changes default shell to zsh
@@ -210,14 +208,20 @@ Tracked KDE configuration files in `packages/kde/.config/`:
 | **Applications** | `dolphinrc`, `konsolerc`, `katerc`, `klipperrc`, `spectaclerc`, `systemmonitorrc`, `krunnerrc`, `kscreenlockerrc` | Individual app configs |
 | **Security** | `kwalletrc` | KDE Wallet (auto-close, idle timeout) |
 
-### KDE backup/restore
+### KDE config sync (git-based)
+
+KDE configs are managed by git, not a dedicated script:
 
 ```bash
-# Backup from live system → packages/kde/.config/
-./scripts/kde-settings.sh backup
+# 1. Commit config changes on source machine
+git add packages/kde/
+git commit -m "kde: update config"
 
-# Restore from packages/kde/.config/ → live system
-./scripts/kde-settings.sh restore
+# 2. Push to machine branch
+./scripts/push-changes.sh
+
+# 3. On target machine, pull and re-stow
+./scripts/pull-updates.sh
 ```
 
 ### Machine-specific KDE files (NOT tracked)
@@ -230,41 +234,6 @@ Tracked KDE configuration files in `packages/kde/.config/`:
 | `KDE/UserFeedback.conf` | Per-machine usage data |
 | `kactivitymanagerd-pluginsrc` | Activity manager session state |
 | `kactivitymanagerd-statsrc` | Activity scoring (cache) |
-
----
-
-## Configuration Management
-
-### Machine-specific configs
-
-| File | Strategy | Why |
-|------|----------|-----|
-| `packages/kde/.config/kwinrc` | Machine branch override | Desktop UUIDs, tiling layout IDs differ per machine |
-| `packages/kde/.config/plasmarc` | Machine branch override | Activity UUIDs differ per machine |
-| `packages/kde/.config/kdeglobals` | Machine branch override | May have machine-specific settings |
-| `packages/git/.gitconfig` | Machine branch (user section) or `.gitconfig.local` | Name/email per machine |
-| `packages/zsh/.config/zsh/local.zsh` | `.gitignore`d local file | Machine-specific env vars, PATH, secrets |
-| `packages/starship/.config/starship.local.toml` | `.gitignore`d local file | Machine-specific prompt config |
-
-**Rule of thumb**: If a file has machine-specific *structure* (like kwinrc UUIDs that get regenerated entirely), track it in a machine branch. If it has machine-specific *values you append* (like local.zsh sourcing secrets), use the gitignored local override pattern.
-
-### Syncing KDE configs across machines
-
-```bash
-# Step 1: Backup from source machine
-./scripts/kde-settings.sh backup
-
-# Step 2: Commit to feature branch
-git checkout -b feature/update-kde-configs
-git add packages/kde/
-git commit -m "feat(kde): sync kwinrc, kdeglobals, plasmakeyboardrc"
-git push -u origin feature/update-kde-configs
-
-# Step 3: Deploy to target machine (after merge)
-git pull
-./scripts/stow-package.sh kde
-# WARNING: stow will symlink — verify KDE layouts after re-login
-```
 
 ---
 
@@ -365,7 +334,7 @@ mkdir -p packages/<name>/.config/<app>/
 cp ~/.config/<app>/settings.json packages/<name>/.config/<app>/
 
 # 3. Test with stow
-./scripts/stow-package.sh <name>
+./scripts/stow.sh <name>
 
 # 4. Verify symlinks
 ls -la ~/.<config-path>
@@ -388,14 +357,8 @@ stow --simulate --target="$HOME" packages/*
 # Full validation suite
 ./scripts/validate.sh
 
-# Health check
-./scripts/doctor.sh
-
-# Symlink audit
-./scripts/drift-detect.sh
-
 # Update & re-stow
-./scripts/update.sh
+./scripts/pull-updates.sh
 ```
 
 ### Updating manifests

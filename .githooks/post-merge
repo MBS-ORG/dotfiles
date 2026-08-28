@@ -2,9 +2,9 @@
 set -euo pipefail
 
 echo "=== post-merge: re-stowing packages ==="
-script="$(git rev-parse --show-toplevel)/scripts/stow-all.sh"
+script="$(git rev-parse --show-toplevel)/scripts/stow.sh"
 if [[ -x "$script" ]]; then
   "$script"
 else
-  echo "  WARN: stow-all.sh not found or not executable"
+  echo "  WARN: stow.sh not found or not executable"
 fi
