@@ -13,8 +13,13 @@ set -euo pipefail
 
 # ── Cleanup handler ──────────────────────────────────────────────────────────
 CLEANUP_FILES=()
+SUDO_KEEPER_PID=""
 cleanup() {
   local code=$?
+  if [[ -n "$SUDO_KEEPER_PID" ]]; then
+    kill "$SUDO_KEEPER_PID" 2>/dev/null || true
+    SUDO_KEEPER_PID=""
+  fi
   for f in "${CLEANUP_FILES[@]}"; do
     rm -f "$f" 2>/dev/null || true
   done
@@ -26,18 +31,37 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# ── Args ─────────────────────────────────────────────────────────────────────
+DOTFILES_OS=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --os) DOTFILES_OS="$2"; shift 2 ;;
+    *)    shift ;;
+  esac
+done
+
 # ── OS detection ─────────────────────────────────────────────────────────────
-OS="$(uname -s)"
 # shellcheck disable=SC2034
 ARCH="$(uname -m)"
-case "$OS" in
-  Linux)  IS_LINUX=1; IS_MACOS=0 ;;
-  Darwin) IS_LINUX=0; IS_MACOS=1 ;;
-  *)
-    echo "Unsupported OS: $OS. Expected Linux or Darwin."
-    exit 1
-    ;;
-esac
+if [[ -n "$DOTFILES_OS" ]]; then
+  case "$DOTFILES_OS" in
+    wsl|linux) IS_LINUX=1; IS_MACOS=0 ;;
+    macos)     IS_LINUX=0; IS_MACOS=1 ;;
+    *)
+      echo "Unsupported OS: $DOTFILES_OS. Expected wsl, linux, or macos."
+      exit 1
+      ;;
+  esac
+else
+  case "$(uname -s)" in
+    Linux)  IS_LINUX=1; IS_MACOS=0 ;;
+    Darwin) IS_LINUX=0; IS_MACOS=1 ;;
+    *)
+      echo "Unsupported OS: $(uname -s). Expected Linux or Darwin."
+      exit 1
+      ;;
+  esac
+fi
 
 # ── Colors ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -70,8 +94,9 @@ request_sudo() {
     print_err "Sudo authentication failed. Re-run the script and try again."
     exit 1
   fi
-  # Keep sudo ticket alive in background
-  while true; do sudo -n true 2>/dev/null; sleep 60; kill -0 "$$" 2>/dev/null || exit; done &
+  # Keep sudo ticket alive in background (killed in cleanup)
+  while true; do sudo -n true 2>/dev/null; sleep 60; kill -0 "$$" 2>/dev/null || break; done &
+  SUDO_KEEPER_PID=$!
 }
 
 request_sudo
@@ -143,7 +168,6 @@ if [ "$IS_LINUX" -eq 1 ]; then
     fi
     print_info "Downloading ${name} Nerd Font..."
     wget -q "$url" -O "$zip_path"
-    CLEANUP_FILES+=("$zip_path")
     unzip -q -o "$zip_path" -d "$FONT_DIR" 2>/dev/null
     rm -f "$zip_path"
     print_ok "${name} installed"
@@ -169,8 +193,12 @@ print_header "Phase 3: Rust Toolchain"
 
 if ! cmdexists cargo; then
   print_info "Installing Rust toolchain..."
-  # NOTE: rustup recommends curl | sh — acceptable supply-chain risk
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  # NOTE: rustup recommends curl | sh — downloading to tmpfile then executing (supply-chain aware)
+  tmpfile=$(mktemp)
+  CLEANUP_FILES+=("$tmpfile")
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$tmpfile"
+  sh "$tmpfile" -y
+  rm -f "$tmpfile"
   # Source for the remainder of this script
   if [ -f "$HOME/.cargo/env" ]; then
     # shellcheck source=/dev/null
@@ -293,14 +321,28 @@ if ! cmdexists lazygit; then
   if [ "$IS_LINUX" -eq 1 ]; then
     print_info "Installing lazygit..."
     lg_ver="$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
-      | grep '"tag_name":' | sed 's/.*"v\([^"]*\)".*/\1/')"
-    lg_url="https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${lg_ver}_Linux_x86_64.tar.gz"
-    curl -fsSL "$lg_url" -o /tmp/lazygit.tar.gz
-    CLEANUP_FILES+=("/tmp/lazygit.tar.gz")
-    tar xf /tmp/lazygit.tar.gz -C /tmp lazygit
-    sudo install /tmp/lazygit /usr/local/bin/
-    rm -f /tmp/lazygit /tmp/lazygit.tar.gz
-    print_ok "lazygit ${lg_ver} installed"
+      | jq -r '.tag_name' 2>/dev/null | sed 's/^v//')"
+    if [[ -z "$lg_ver" ]]; then
+      print_warn "Could not determine lazygit version — skipping"
+    else
+      case "$ARCH" in
+        x86_64|amd64)   lg_arch="x86_64" ;;
+        aarch64|arm64)  lg_arch="arm64" ;;
+        *) print_warn "Unsupported arch for lazygit: $ARCH — skipping"; lg_arch="" ;;
+      esac
+      if [[ -n "$lg_arch" ]]; then
+        lg_url="https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${lg_ver}_Linux_${lg_arch}.tar.gz"
+        if curl -fsSL "$lg_url" -o /tmp/lazygit.tar.gz; then
+          CLEANUP_FILES+=("/tmp/lazygit.tar.gz")
+          tar xf /tmp/lazygit.tar.gz -C /tmp lazygit
+          sudo install /tmp/lazygit /usr/local/bin/
+          rm -f /tmp/lazygit /tmp/lazygit.tar.gz
+          print_ok "lazygit ${lg_ver} installed"
+        else
+          print_warn "lazygit download failed — skipping"
+        fi
+      fi
+    fi
   else
     brew install lazygit 2>/dev/null || true
   fi
@@ -416,7 +458,7 @@ print_header "Installation Complete"
 
 echo -e "${GREEN}All tools installed successfully!${NC}\n"
 echo -e "${YELLOW}Next steps:${NC}"
-echo -e "  1. ${CYAN}Run the deploy script:  ./scripts/deploy-configs.sh${NC}"
+echo -e "  1. ${CYAN}Stow dotfiles:           ./scripts/stow.sh${NC}"
 echo -e "  2. ${CYAN}Or full bootstrap:       ./install.sh${NC}"
 echo -e "  3. ${CYAN}Reload:                  exec \$SHELL${NC}"
 echo ""

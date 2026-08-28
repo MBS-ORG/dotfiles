@@ -40,9 +40,7 @@ detect_os() {
   case "$(uname -s)" in
     Linux)
       if grep -qi microsoft /proc/version 2>/dev/null; then
-        echo "wsl2"
-      elif command -v apt &>/dev/null; then
-        echo "debian"
+        echo "wsl"
       else
         echo "linux"
       fi
@@ -70,12 +68,11 @@ run() {
 
 # ── Install System Dependencies ──────────────────────────────────────────
 install_deps() {
-  local os
-  os="$(detect_os)"
+  local os="${OS:-$(detect_os)}"
   info "Detected OS: ${os}"
 
   case "$os" in
-    debian|wsl2)
+    wsl|linux)
       local pkgs=(git stow zsh bash tmux ripgrep curl)
       $DESKTOP && pkgs+=(fonts-firacode fonts-nerd-fonts)
       run sudo apt-get update -qq
@@ -125,11 +122,11 @@ switch_to_machine_branch() {
 
 # ── Stow Packages ────────────────────────────────────────────────────────
 run_stow() {
-  local script="${REPO_DIR}/scripts/stow-all.sh"
+  local script="${REPO_DIR}/scripts/stow.sh"
   if [[ -x "$script" ]]; then
-    run "$script"
+    run "$script" "$@"
   else
-    warn "stow-all.sh not found — running stow manually"
+    warn "stow.sh not found — running stow manually"
     for pkg in "${REPO_DIR}"/packages/*/; do
       name=$(basename "$pkg")
       run stow -R --target="${HOME}" --dir="${REPO_DIR}/packages" "$name" || warn "stow failed for $name — continuing"
@@ -146,9 +143,9 @@ install_runtimes() {
     info "fnm already installed"
   fi
 
-  # NOTE: rustup recommends curl | sh — acceptable supply-chain risk
+  # NOTE: rustup recommends curl | sh — downloading to tmpfile then executing (supply-chain aware)
   if ! command -v rustup &>/dev/null; then
-    run curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    run bash -c 'tmpfile=$(mktemp) && curl --proto '\''=https'\'' --tlsv1.2 -sSf https://sh.rustup.rs -o "$tmpfile" && sh "$tmpfile" -y && rm -f "$tmpfile"'
   else
     info "rustup already installed"
   fi
@@ -161,12 +158,6 @@ desktop_setup() {
 
   if command -v flatpak &>/dev/null; then
     run flatpak update -y
-  fi
-
-  # Restore KDE settings if manifest exists
-  local restore_script="${REPO_DIR}/scripts/kde-settings.sh"
-  if [[ -x "$restore_script" ]]; then
-    run "$restore_script" restore
   fi
 }
 
@@ -193,24 +184,22 @@ verify() {
   info "Running verification"
   local errors=0
 
-  if command -v zsh &>/dev/null; then info "  zsh:     OK"; else warn "  zsh:     MISSING"; ((errors++)); fi
-  if command -v git &>/dev/null; then info "  git:     OK"; else warn "  git:     MISSING"; ((errors++)); fi
-  if command -v stow &>/dev/null; then info "  stow:    OK"; else warn "  stow:    MISSING"; ((errors++)); fi
-  if command -v tmux &>/dev/null; then info "  tmux:    OK"; else warn "  tmux:    MISSING"; ((errors++)); fi
-  if command -v rg &>/dev/null; then info "  ripgrep: OK"; else warn "  ripgrep: MISSING"; ((errors++)); fi
-  if command -v curl &>/dev/null; then info "  curl:    OK"; else warn "  curl:    MISSING"; ((errors++)); fi
+  if command -v zsh &>/dev/null; then info "  zsh:     OK"; else warn "  zsh:     MISSING"; ((errors++)) || true; fi
+  if command -v git &>/dev/null; then info "  git:     OK"; else warn "  git:     MISSING"; ((errors++)) || true; fi
+  if command -v stow &>/dev/null; then info "  stow:    OK"; else warn "  stow:    MISSING"; ((errors++)) || true; fi
+  if command -v tmux &>/dev/null; then info "  tmux:    OK"; else warn "  tmux:    MISSING"; ((errors++)) || true; fi
+  if command -v rg &>/dev/null; then info "  ripgrep: OK"; else warn "  ripgrep: MISSING"; ((errors++)) || true; fi
+  if command -v curl &>/dev/null; then info "  curl:    OK"; else warn "  curl:    MISSING"; ((errors++)) || true; fi
 
-  if $DESKTOP; then
-    if command -v starship &>/dev/null; then info "  starship: OK"; else warn "  starship: MISSING"; ((errors++)); fi
-    if command -v eza &>/dev/null; then info "  eza:      OK"; else warn "  eza:      MISSING"; ((errors++)); fi
-  fi
+  if command -v starship &>/dev/null; then info "  starship: OK"; else warn "  starship: MISSING"; ((errors++)) || true; fi
+  if command -v eza &>/dev/null; then info "  eza:      OK"; else warn "  eza:      MISSING"; ((errors++)) || true; fi
 
   # Check symlinks
   local broken_symlinks=0
   while IFS= read -r link; do
     if [[ ! -e "$link" ]]; then
       warn "  Broken symlink: $link"
-      ((broken_symlinks++))
+      ((broken_symlinks++)) || true
     fi
   done < <(find "${HOME}" -type l -xtype l 2>/dev/null | head -20)
   if [[ $broken_symlinks -eq 0 ]]; then info "  symlinks: OK"; else warn "  symlinks: ${broken_symlinks} broken"; fi
@@ -229,13 +218,14 @@ main() {
   info "Dotfiles Bootstrap"
   echo "═══════════════════════════════════════════════════════════════"
 
-  detect_os >/dev/null
+  OS="$(detect_os)"
+  info "Detected OS: ${OS}"
   detect_desktop >/dev/null
 
   install_deps
   clone_or_pull_repo
   switch_to_machine_branch
-  run_stow
+  run_stow --os "$OS"
   install_runtimes
   desktop_setup
   change_shell

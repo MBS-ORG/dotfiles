@@ -20,7 +20,7 @@ fi
 
 # cargo
 if command -v cargo &>/dev/null; then
-  cargo install --list 2>/dev/null | grep '^[a-zA-Z]' | awk '{print $1}' | sort > manifests/cargo.txt
+  cargo install --list 2>/dev/null | grep -v '^path:' | grep -v '^[[:space:]]*$' | awk '{print $1}' | sort -u > manifests/cargo.txt
   echo "  cargo: $(wc -l < manifests/cargo.txt) crates"
 fi
 
