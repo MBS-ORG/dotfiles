@@ -1,0 +1,351 @@
+# Dotfiles GitOps Architecture — Source of Truth
+
+| | |
+|---|---|
+| **Repo** | `MBS-ORG/dotfiles` |
+| **Status** | Accepted (v2) — supersedes the original `Architecture-Proposal` |
+| **Baseline commit** | `3a33360` (main) |
+| **Provenance** | Synthesizes `docs/src/Architecture-Proposal`, `docs/src/Architecture-Proposal-Audit`, `docs/src/Architecture-Proposal-Audit-Evaluations_beta`, and the existing (already-shipped) `machine/<hostname>` sync pattern |
+| **Owner** | Sabir (M.B.S) |
+
+This document is the single reference for how the system is designed and how configuration flows through it. Where the original proposal and its audit disagreed or left something open, this document makes the call. It should be kept current — when the design changes, this file changes with it.
+
+---
+
+## 1. System Overview
+
+The repo is a **desired-state configuration store**, not a live mirror of any machine. `main` describes what every machine's configuration *should* be. Each machine runs a reconciliation flow that pulls that desired state and converges its local filesystem toward it via GNU Stow. Machine-specific changes flow back into Git only through an explicit, human-gated capture step — never automatically.
+
+```
+                         ┌───────────────────────┐
+                         │   GitHub: main         │
+                         │   (desired state)      │
+                         └───────────┬───────────┘
+                                     │ fetch / pull
+                         ┌───────────▼───────────┐
+                         │   staging              │
+                         │  (integration branch)  │
+                         └───────────┬───────────┘
+                                     │ rebase
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+             machine/laptop   machine/desktop   machine/wsl-dev
+                    │                │                │
+              ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
+              │ bootstrap.sh│   │ bootstrap.sh│   │ bootstrap.sh│
+              │ stow.sh     │   │ stow.sh     │   │ stow.sh     │
+              └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
+                    ▼                ▼                ▼
+               $HOME (linux)    $HOME (windows)   $HOME (wsl)
+```
+
+**The one sentence that governs every design decision below:**
+
+> Git describes desired configuration. The machine owns its own runtime state. Nothing crosses from machine → Git without an explicit, reviewed step.
+
+This directly replaces the original proposal's model, where hardware events (battery/power) triggered an unconditional `git add . && commit && push` from the machine back into a branch. That model is retired — see §6 and §8 for what replaces it.
+
+---
+
+## 2. Design Principles
+
+These are the invariants every component in this repo is expected to uphold.
+
+1. **Three kinds of state, never conflated.**
+   - *Desired state* — lives in `main`/`staging`. What configuration should exist.
+   - *Runtime state* — lives only on the machine (caches, logs, package-manager state, session data). Never committed, ever.
+   - *Observed state* — what the reconciler sees on disk right now. Compared against desired state to detect drift; not itself a commit target.
+2. **Branches are workflow, not configuration hierarchy.** A branch name never determines what configuration applies to a host — the host manifest does (§4). Branches exist to isolate *when* and *how* changes move, not *what* they mean.
+3. **Enforcement is server-side.** Anything protecting `main` must survive a deleted local hook, a `--no-verify` push, or a push from an unconfigured clone. Client-side hooks are a convenience, never a control.
+4. **Every operation is idempotent.** Running any script N times from any starting state converges to the same result with zero unintended side effects on runs 2..N.
+5. **Machine → Git is opt-in and reviewed.** Discovering drift is automatic; capturing it into `main` requires an explicit human (or agent-assisted, human-approved) step through a PR.
+
+---
+
+## 3. Repository Structure
+
+Target layout — additive to what exists today (packages/, scripts/, manifests/, docs/ are already real; `config/`, `hosts/`, `modules/`, `state/`, `policy/` are new):
+
+```
+dotfiles/
+├── config/
+│   ├── common/           # universal config: shell aliases, editor themes, .gitconfig base
+│   ├── linux/             # Linux-only config
+│   ├── windows/           # Windows-only config
+│   └── wsl/               # WSL-specific overrides
+│
+├── hosts/
+│   ├── linux-laptop/host.yaml
+│   ├── windows-desktop/host.yaml
+│   └── wsl-dev/host.yaml
+│
+├── modules/
+│   ├── shell/ git/ terminal/ editor/ desktop/   # feature-oriented bundles, composed per profile
+│
+├── packages/               # existing — GNU Stow packages (bash, fish, zsh, git, vscode, cursor, etc.)
+├── manifests/              # existing — dpkg.txt, flatpak.txt package lists
+├── scripts/                # existing — bootstrap.sh, stow.sh, validate.sh, pull-updates.sh, push-changes.sh, install-tools.sh
+├── state/                  # git-ignored — reconciler's local observed-state cache (inventory.json, drift.json, last-sync.json)
+├── policy/                 # secret-scan rules, forbidden-path rules, allow-listed commit paths
+├── tests/                  # idempotency tests, Stow tests, integration tests
+├── docs/
+│   ├── src/                # existing — the proposal/audit/synthesis chain (historical record, kept as-is)
+│   └── architecture/       # ADRs — one per major decision, this file's companion
+└── .github/workflows/      # consolidated CI (§9)
+```
+
+`config/` + `modules/` are **desired state**. `state/` is **observed state** and is git-ignored. `hosts/*/host.yaml` is desired state *about* a specific machine — it lives in `main`, not in a machine branch, because "this host should run profile X" is a decision, not runtime noise.
+
+---
+
+## 4. Host Identity Model
+
+The original proposal's biggest technical flaw was using `uname` to detect OS — which cannot distinguish native Linux from WSL2. This is fixed by an explicit manifest per host, checked into `main`:
+
+```yaml
+# hosts/wsl-dev/host.yaml
+id: wsl-dev
+platform: windows          # linux | windows
+environment: wsl           # native | wsl | vm | container
+profile:
+  - common
+  - linux
+  - wsl
+modules:
+  - shell
+  - git
+  - terminal
+```
+
+**Detection logic** (used once, at bootstrap, to resolve which manifest applies): `uname` narrows to Linux vs. Windows-native; a WSL check (`$WSL_DISTRO_NAME` / `/proc/version` signature) then distinguishes `wsl` from `native` within the Linux branch. The result is written into the manifest once — it is not re-derived on every run, which is part of what makes bootstrap idempotent.
+
+**Configuration precedence** (lowest to highest, later overrides earlier):
+
+```
+common → platform → environment → host → local override (untracked, machine-only)
+```
+
+`local override` is the escape hatch for one-off machine tweaks that should never enter Git at all — it lives outside the repo (e.g. `~/.config/dotfiles-local/`), which is a cleaner and simpler answer than the original proposal's `local.zsh` / `local.gitconfig` files sitting inside the ignored-but-adjacent-to-tracked repo tree.
+
+---
+
+## 5. Branching & Git Flow — Decision
+
+**Decision: evolve the existing `machine/<hostname>` + `staging` pattern. Do not introduce a parallel `host-<os>-<moniker>` branch model.**
+
+Rationale: `scripts/push-changes.sh` and `scripts/pull-updates.sh` already implement a working `main → staging → machine/<hostname>` flow today, and it already avoids one of the audit's sharpest criticisms — it stages with `git add -u` (tracked-file updates only), not a blanket `git add .`. Introducing a second, differently-named branch scheme on top of a working one would fragment the history model for no real gain. The manifest in §4 already solves the problem the original branch-naming scheme (`host-linux-laptop`, `host-win-desktop`) was trying to solve — host identity doesn't need to live in a branch name once it lives in a file.
+
+```
+main (protected, desired state)
+  │
+  ├── staging (integration — pull-updates.sh rebases this onto main)
+  │      │
+  │      ├── machine/laptop     (host-specific captured changes, PR'd back to main)
+  │      ├── machine/desktop
+  │      └── machine/wsl-dev
+  │
+  └── feature/*  (ad hoc feature branches, same PR→CI→main path)
+```
+
+**What changes from today's implementation:**
+- `machine/<hostname>` branches now hold **reviewed, captured** host-specific config changes only (see §8's drift-capture flow) — not a running auto-commit log of everything that changed on disk.
+- `main` protection moves from "local pre-push hook" to a **GitHub ruleset**: PR required, passing CI required, force-push disabled, direct push disabled. The local hook stays installed as a fast local warning, but carries no enforcement weight.
+
+---
+
+## 6. Bootstrap Flow
+
+Bootstrap must be safe to run any number of times, from any starting state, including mid-failure and post-reboot.
+
+```
+DISCOVER            → detect platform + environment (§4), locate or create host manifest
+   ↓
+VALIDATE            → check dependencies present (git, stow, shell), fail fast with a clear message
+   ↓
+INSTALL_DEPENDENCIES → ensure_stow(), ensure_git(), ensure_shell()  — each a no-op if already satisfied
+   ↓
+RESOLVE_HOST_ID     → read or create hosts/<id>/host.yaml
+   ↓
+ENSURE_BRANCH       → checkout machine/<hostname> if it exists; create from staging if it doesn't
+   ↓
+RECONCILE_SYMLINKS  → stow.sh, composed per the precedence chain in §4
+   ↓
+INSTALL_SERVICES    → systemd timer / Task Scheduler entry (§8), idempotent install
+   ↓
+VERIFY              → validate.sh; report success/failure with specifics, not just exit code
+```
+
+Each step is written as `ensure_X()` — check current state, act only if needed — never `do_X()`, which assumes a clean slate. `--dry-run` reports the plan (which steps would act) without executing any of them.
+
+---
+
+## 7. Reconciliation & Sync Flow
+
+This is the flow that replaces the original proposal's battery-triggered `git add . && commit && push`.
+
+### 7.1 One-way sync (machine converges to Git) — automatic, unattended
+
+```
+Trigger (see 7.3)
+   │
+   ▼
+DISCOVER   — read local state, read desired state from staging
+   │
+   ▼
+PLAN       — compute what would change to converge local → desired
+   │
+   ▼
+DIFF       — show the plan (logged; visible via a status command)
+   │
+   ▼
+APPLY      — re-stow, apply config changes
+   │
+   ▼
+VERIFY     — confirm the applied state matches desired state
+   │
+   ▼
+REPORT     — write state/last-sync.json (observed state, local only)
+```
+
+This direction never writes to Git. It only pulls.
+
+### 7.2 Drift capture (machine → Git) — explicit, human-gated
+
+```
+Machine discovers drift (local config differs from what's in Git)
+   │
+   ▼
+Reconciler reports it (does NOT auto-commit)
+   │
+   ▼
+Human/agent reviews the diff
+   │
+   ▼
+Explicit capture — the reviewed subset only, staged against
+the allow-list in policy/ (never a bare `git add .`)
+   │
+   ▼
+Commit on machine/<hostname>
+   │
+   ▼
+PR → CI → main
+```
+
+This is the direct fix for the audit's "automatic commits need a policy" finding. `git add .`/`git add -u` across the whole tree is retired as a sync mechanism entirely; staging is always scoped to an explicit path allow-list defined in `policy/`.
+
+### 7.3 Trigger hierarchy
+
+```
+TIMER (systemd timer / Task Scheduler, every 15–30 min)   ← primary, safety-net trigger
+LOGIN / BOOT                                                ← convenience trigger
+MANUAL (`dotctl reconcile`)                                 ← on demand
+POWER / NETWORK EVENT (udev, WMI)                           ← optional accelerator only
+```
+
+The timer is the trigger the system's correctness depends on; everything else exists to make convergence *feel* faster, never to be the only path to convergence. This directly resolves the audit's objection to battery-percentage as a primary trigger (`POWER_SUPPLY_CAPACITY=="50"` fires on noisy, frequent transitions) — event triggers now just call the same idempotent `reconcile` operation early, with a lock (`flock`) preventing overlapping runs.
+
+---
+
+## 8. Security Model
+
+| Control | Mechanism | Enforced by |
+|---|---|---|
+| `main` cannot be pushed to directly | GitHub branch ruleset | Server (GitHub) |
+| `main` requires review + passing CI | Required PR + required status check | Server (GitHub) |
+| Force-push to `main` blocked | Ruleset | Server (GitHub) |
+| Fast local warning against pushing to `main` | `.githooks/pre-push` | Client (advisory only) |
+| Secrets never enter automated commits | Secret-pattern scan, run before any commit in §7.2 | `policy/` scan, invoked by `push-changes.sh` |
+| Automated commits stay scoped | Explicit path allow-list, not `git add .` | `policy/` allow-list, invoked by `push-changes.sh` |
+| Machine-generated noise never tracked | `.gitignore` + `state/` kept out of version control entirely | Git config |
+
+**Known debt this model inherits and must clear:** `.omo/` and `.opencode/` are currently tracked despite being gitignored (added before the ignore rule). Under this architecture that's a policy violation, not just tidiness — it means the allow-list/ignore rules were bypassed once already and should be audited for what else might have slipped through the same gap.
+
+---
+
+## 9. CI/CD Pipeline
+
+**Current state (as of baseline commit):** `ci.yml` and `validate.yml` both trigger on push/PR to `main` and run overlapping shell/Stow validation. `comprehensive.yml` runs a scheduled matrix + Docker build. `deploy.yml` and `release.yml` handle their own concerns separately.
+
+**Target state:**
+
+```
+PR → main
+  │
+  ├── static    (ShellCheck, bash -n, YAML/TOML lint)
+  ├── policy    (secret scan, forbidden-path scan, allow-list check)
+  ├── stow      (every package, every supported profile)
+  ├── bootstrap (fresh HOME, fresh repo clone, full bootstrap run)
+  └── idempotency (bootstrap run 3x, expect 0 unintended changes on runs 2–3)
+        │
+        ▼
+      PR gate (single workflow)
+
+Scheduled (weekly, unrelated to PR gate)
+  │
+  ├── Linux matrix (Ubuntu 22.04, 24.04)
+  ├── WSL2 Ubuntu
+  ├── Windows/PowerShell
+  └── Docker build
+        │
+        ▼
+      comprehensive.yml (unchanged responsibility, kept scoped to this)
+```
+
+`ci.yml` and `validate.yml` merge into one PR-gate workflow. `comprehensive.yml` keeps its current scheduled/matrix role untouched — the overlap being eliminated is specifically the two PR-triggered workflows duplicating each other, not the scheduled job.
+
+---
+
+## 10. Reconciler Interface
+
+The target operator surface is a single command, wrapping the scripts that already exist rather than replacing them:
+
+| Command | Wraps today | Purpose |
+|---|---|---|
+| `dotctl discover` | (new) | Detect platform/environment, resolve host manifest |
+| `dotctl plan` | `stow.sh -n` (dry-run) | Show what would change |
+| `dotctl diff` | (new, thin) | Show desired vs. observed state |
+| `dotctl apply` | `stow.sh` | Apply the plan |
+| `dotctl verify` | `validate.sh` | Confirm applied state is correct |
+| `dotctl status` | (new) | Report current state + last sync time |
+| `dotctl drift` | (new) | Report divergence without applying (§7.2 entry point) |
+| `dotctl reconcile` | `pull-updates.sh` | Run the full one-way sync flow (§7.1) |
+
+`dotctl` is introduced as a thin wrapper first — it should not become a rewrite of `stow.sh`/`validate.sh`/`bootstrap.sh`. Those scripts remain the actual implementation; `dotctl` gives them one consistent, memorable entry point and a place to add `plan`/`diff`/`drift` semantics that don't exist as isolated scripts today.
+
+---
+
+## 11. Component Reference (current repo, verified)
+
+| Path | Role today | Role in this architecture |
+|---|---|---|
+| `scripts/bootstrap.sh` | OS detection, dependency install, initial stow | Gains `--dry-run`, idempotent `ensure_X()` structure, WSL detection (§6) |
+| `scripts/stow.sh` | Applies Stow packages | Becomes the `apply` step in reconciliation |
+| `scripts/validate.sh` | Syntax/config validation | Becomes the `verify` step; also the CI static/policy layer |
+| `scripts/pull-updates.sh` | Fetch, rebase staging → machine branch, re-stow | Becomes the one-way sync flow (§7.1) |
+| `scripts/push-changes.sh` | Auto-commit machine branch on trigger | Rescoped to explicit allow-list + secret scan (§7.2, §8) |
+| `scripts/install-tools.sh` | Tool installation | Unchanged; called from `INSTALL_DEPENDENCIES` |
+| `scripts/manifest-gen.sh` | Generates package manifests | Feeds `manifests/dpkg.txt`, `flatpak.txt` — unchanged |
+| `manifests/*.txt` | Flat package lists | Unchanged; referenced by host profiles |
+| `.github/workflows/ci.yml` | PR validation | Merged into the single PR-gate workflow (§9) |
+| `.github/workflows/validate.yml` | PR validation (overlapping with ci.yml) | Merged into the single PR-gate workflow (§9) |
+| `.github/workflows/comprehensive.yml` | Scheduled matrix + Docker build | Unchanged role |
+| `.githooks/pre-push` | Blocks direct push to `main` | Kept as advisory-only; enforcement moves server-side (§8) |
+
+---
+
+## 12. Deferred / Out of Scope for This Architecture
+
+- Event-driven (udev/Task Scheduler) triggers as anything more than an accelerator on top of the timer (§7.3).
+- Generalizing `dotctl` into a reusable framework beyond this repo.
+- A GUI or dashboard over reconciler state.
+
+These are tracked separately in the project's PRD, not repeated here — this document is the architecture; the PRD is the rollout plan.
+
+---
+
+## 13. Document Provenance
+
+- Original design: `docs/src/Architecture-Proposal`
+- Technical critique: `docs/src/Architecture-Proposal-Audit`
+- Synthesis and target model: `docs/src/Architecture-Proposal-Audit-Evaluations_beta`
+- This document: the decided, current architecture — resolves the branching-model question the synthesis left open, ties every design choice to a verified fact about the live repo, and is the file to update whenever the design changes going forward.
