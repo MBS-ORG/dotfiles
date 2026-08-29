@@ -1,0 +1,188 @@
+## 📂 Dotfiles GitOps Architecture
+
+A declarative, event-driven GitOps workflow for managing configuration files across mixed Windows and Linux environments. This setup isolates host environments using custom machine branches, protects the core baseline from direct modifications, and triggers background synchronization using hardware states (battery/power events via udev and systemd).
+
+Internal configurations are managed cleanly using GNU Stow to safely map files to local home directories without pollution.
+------------------------------
+
+## 📐 1. Branching Strategy
+
+To keep machine configurations entirely decoupled while preserving a shared foundation, the repository relies on a hub-and-spoke branching model:
+
+          [ Protected main Branch ]  <--- Core shared updates, alias profiles, core configs
+                     │
+         ┌───────────┴───────────┐
+         ▼                       ▼
+[ host-linux-laptop ]   [ host-win-desktop ] <--- Machine-isolated branches
+  (udev profiles,          (PowerShell hooks,
+   systemd sync)            registry modifications)
+
+## main Branch (Protected Sandbox)
+
+* Purpose: Holds the absolute minimum baseline configuration shared by all systems (e.g., universal shell aliases, agnostic .vimrc, editor themes).
+* Rule: Directly pushing or force-pushing to main from a client environment is completely blocked by automated Git hooks. Upstream modifications must happen via Pull Requests (PRs).
+
+## Host Branches (host-<os>-<identifier>)
+
+* Purpose: Tracks system-specific anomalies (e.g., custom screen resolutions, machine-specific paths, environment variables).
+* Rule: Each hardware environment checks out its own designated host branch. Background synchronizations commit and push exclusively to these isolated channels, ensuring merge conflicts are physically impossible.
+
+------------------------------
+
+## 🛠️ 2. The Installer & Bootstrapping Flow
+The bootstrap.sh script automates system discovery, creates the machine's isolated sandbox branch, installs prerequisites, and stows the files.
+## Interactive Installation Step
+When executed on a new machine, the script:
+
+   1. Detects the Operating System.
+   2. Prompts the user for a unique machine moniker (e.g., thinkpad, gaming-pc).
+   3. Dynamically constructs the target branch name: host-<os>-<moniker>.
+   4. Creates the branch from the current upstream main, installs GNU Stow, and runs link maps.
+
+## How GNU Stow Is Managed
+
+Configurations are stored inside isolated folders in the repository and mapped to $HOME:
+
+~/.dotfiles/
+├── zsh/          # Stow package for Zsh
+│   └── .zshrc
+├── nvim/         # Stow package for Neovim
+│   └── .config/nvim/init.lua 
+
+Running stow zsh from ~/.dotfiles/ creates a neat symlink: ~/.zshrc -> ~/.dotfiles/zsh/.zshrc.
+
+#!/usr/bin/env bash# snippet from scripts/bootstrap.sh
+set -e
+
+echo "🚀 Initializing Dotfiles Installation..."
+# 1. Detect OS
+OS_TYPE=$(uname | tr '[:upper:]' '[:lower:]')
+read -p "Enter a unique identifier for this host (e.g., laptop, gaming-pc): " HOST_ID
+BRANCH_NAME="host-${OS_TYPE}-${HOST_ID}"
+# 2. Handle Branching
+git fetch originif git show-ref --verify --quiet "refs/remotes/origin/${BRANCH_NAME}"; then
+    echo "🔄 Existing host branch found. Switching to ${BRANCH_NAME}..."
+    git checkout "${BRANCH_NAME}"else
+    echo "✨ Creating new host sandbox branch: ${BRANCH_NAME}..."
+    git checkout -b "${BRANCH_NAME}" origin/main
+    git push -u origin "${BRANCH_NAME}"fi
+# 3. Apply GNU Stow Configuration Links
+echo "📦 Mapping configurations with GNU Stow..."
+stow zsh nvim git
+
+echo "✅ Bootstrapping complete. Machine is tracked on branch: ${BRANCH_NAME}"
+
+------------------------------
+
+## 🔒 3. Local Git Hooks & Protection
+To preserve architecture integrity, client hooks prevent user error before data ever hits your upstream host repository.
+## pre-push Hook
+Installed during bootstrapping to .git/hooks/pre-push, this stops accidental direct commits or force-pushes targeting your protected main channel:
+
+#!/usr/bin/env bash# .git/hooks/pre-push
+while read local_ref local_sha remote_ref remote_shado
+    if [[ "$remote_ref" == "refs/heads/main" ]]; then
+        echo "❌ [GitOps Error]: Direct pushes to 'main' are completely protected!"
+        echo "Please push to your specific host branch and submit a PR."
+        exit 1
+    fidone
+
+------------------------------
+
+## 🔋 4. Event-Driven Continuous Synchronization
+Instead of running battery-draining continuous background scripts, synchronization logic leverages native hardware hooks.
+## Linux Engine: udev + systemd Interception
+Hardware status fluctuations broadcast system interrupts. We grab those events to fire off our custom Git-sync agent without consuming idling CPU cycles.
+## 1. The Kernel Triggers (/etc/udev/rules.d/99-battery-gitops.rules)
+
+# Sync on Charger Connection Alterations (Plugged/Unplugged)
+SUBSYSTEM=="power_supply", ENV{POWER_SUPPLY_NAME}=="AC", ACTION=="change", RUN+="/usr/bin/systemctl --no-block --user -M YOUR_USERNAME start gitops-power-sync.service"
+
+# Sync immediately when battery drains down or charges up to exactly 50%
+SUBSYSTEM=="power_supply", ENV{POWER_SUPPLY_NAME}=="BAT0", ENV{POWER_SUPPLY_CAPACITY}=="50", ACTION=="change", RUN+="/usr/bin/systemctl --no-block --user -M YOUR_USERNAME start gitops-power-sync.service"
+
+## 2. The Service Manifest (~/.config/systemd/user/gitops-power-sync.service)
+
+[Unit]
+Description=Trigger Dotfiles Synchronization on Environment Change
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/%u/.dotfiles/scripts/git-sync-host
+
+[Install]
+WantedBy=default.target
+
+(Enabled via systemctl --user enable gitops-power-sync.service to naturally ensure execution at boot/login).
+## Windows Engine: PowerShell + Task Scheduler
+Windows nodes query power infrastructures natively by mounting into the WMI subsystem, managed using hardware metrics conditions inside the OS Task Scheduler.
+## The Sync Command Script ($HOME/.dotfiles/scripts/git-sync-host.ps1)
+
+# Stop syncing if we drop to battery power
+$Battery = (Get-CimInstance -ClassName Win32_Battery).BatteryStatusif ($Battery -and $Battery -eq 1) { exit 0 }
+# Ensure network visibility if (-not (Test-Connection -ComputerName 8.8.8.8 -Count 1 -Quiet)) { exit 0 }
+
+$CurrentBranch = (git symbolic-ref --short HEAD)
+git fetch origin
+git pull --rebase origin main
+if (git status --porcelain) {
+    git add .
+    git commit -m "Automated state checkpoint: $(Get-Date)"
+    git push origin "$CurrentBranch"
+}
+
+
+* Trigger Mechanics: Routed inside Windows Task Scheduler configured to execute At Logon and Every 1 Hour, utilizing the Task Condition: "Start the task only if the computer is on AC power".
+
+------------------------------
+## 🧪 5. CI/CD Validation Pipeline
+Every Pull Request moving from a personal host-* sandbox branch toward the protected main branch undergoes automated validation inside GitHub Actions before integration.
+## CI Goals
+
+* Shell Verification: Linting bash configurations and orchestration files via ShellCheck.
+* Dry-Run Deployments: Firing up clean virtual runtimes to check that the installation script functions flawlessly on a pristine host.
+
+# .github/workflows/dotfiles-validation.ymlname: Dotfiles GitOps CI
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck Linting
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+
+  test-bootstrap-linux:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Installer Run
+        run: |
+          chmod +x ./scripts/bootstrap.sh
+          # Mock inputs for non-interactive CI execution
+          echo "ci-test-runner" | ./scripts/bootstrap.sh
+
+------------------------------
+## 🏁 How to Use This Repository## Setting up a new machine
+Simply clone down your base configuration environment repository and spin up the internal installation orchestrator:
+
+git clone https://github.com ~/.dotfiles
+cd ~/.dotfiles
+chmod +x scripts/bootstrap.sh
+./scripts/bootstrap.sh
+
+## Propagating a global configuration change
+
+   1. Navigate to your local machine repository.
+   2. Make your edits to the specific configurations (e.g., adding an alias inside zsh/.zshrc).
+   3. Commit the change locally to your safe host sandbox environment.
+   4. Push your changes and open a clean Pull Request to main on GitHub.
+   5. Once your CI checks pass and you merge the PR, all other online systems will pull down the fresh global change automatically on their next hardware event trigger!
+
+------------------------------
