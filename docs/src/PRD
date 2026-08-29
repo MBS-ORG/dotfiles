@@ -1,0 +1,171 @@
+# PRD: Dotfiles GitOps Reconciliation Platform
+
+| | |
+|---|---|
+| **Repo** | `MBS-ORG/dotfiles` |
+| **Status** | Draft — ready for Phase 0 sign-off |
+| **Version** | 1.0 |
+| **Baseline commit** | `3a33360` (main) |
+| **Supersedes / synthesizes** | `docs/src/Architecture-Proposal`, `docs/src/Architecture-Proposal-Audit`, `docs/src/Architecture-Proposal-Audit-Evaluations_beta` |
+| **Owner** | Sabir (M.B.S) |
+
+---
+
+## 1. Problem Statement
+
+The dotfiles repo already runs a working Stow-based configuration system across Linux, WSL, and Windows, with its own bootstrap, validation, and machine-sync scripts. Three internal review documents (proposal → audit → synthesis) independently converged on the same conclusion: the *direction* is sound, but several concrete gaps make the current design unsafe to scale past one or two machines.
+
+Verified against the live repo, the following are real, present-tense problems — not hypotheticals:
+
+- **No platform/environment distinction.** OS detection cannot tell a native Linux host from WSL2, so a WSL machine can silently receive the wrong configuration profile.
+- **No idempotency guarantee.** Bootstrap and sync scripts assume a clean first run; re-running after a partial failure or reboot has undefined behavior.
+- **Unscoped automated commits.** Machine-sync scripts stage changes with no allow-list or secret scan, so a future edit could leak credentials or cache noise into git history.
+- **Client-side-only branch protection.** `main` is "protected" only by a local pre-push hook, which any client can bypass (`--no-verify`, hook deletion, or a push from an unhooked clone).
+- **Duplicated CI.** `ci.yml` and `validate.yml` both trigger on push/PR to `main` and run overlapping shell/Stow validation — confirmed by inspecting both files.
+- **Tracked artifacts that should be ignored.** `.omo/` and `.opencode/` (9 files) are committed to git despite being listed in `.gitignore` — added before the ignore rule and never cleaned up.
+- **Stale repository reference.** `bootstrap.sh` and `README.md` both hardcode a clone URL (`Sabir-test/dotfiles`) that no longer matches the repo's actual location (`MBS-ORG/dotfiles`).
+
+**Cost of not fixing this:** config drift accumulates silently, a bad auto-commit can permanently pollute git history with secrets, WSL hosts get misconfigured without any error, and every new machine added multiplies the blast radius of all of the above.
+
+---
+
+## 2. Current State Baseline (as-is, verified)
+
+This section exists so the plan below builds *on* what's real, not on a greenfield assumption — that mistake is what limited the original proposal document.
+
+- **Branches:** `main` only on the remote today, plus dependabot branches. No `host-*` branches currently exist upstream.
+- **Existing machine-sync pattern:** `scripts/push-changes.sh` already commits to a `machine/<hostname>` branch using `git add -u` (tracked-file updates only — safer than a blanket `git add .`). `scripts/pull-updates.sh` already rebases a `staging` branch into the machine branch before re-stowing and re-validating.
+- **Scripts:** `bootstrap.sh`, `stow.sh`, `validate.sh`, `install-tools.sh`, `pull-updates.sh`, `push-changes.sh`, `manifest-gen.sh`.
+- **CI:** 5 workflows — `ci.yml`, `validate.yml` (overlapping), `comprehensive.yml` (scheduled matrix + Docker build), `deploy.yml`, `release.yml`.
+- **Manifests:** `manifests/dpkg.txt`, `manifests/flatpak.txt` (flat package lists, no host/profile structure).
+- **Hygiene debt:** `.omo/`, `.opencode/` tracked-but-ignored; stale `Sabir-test` URL in two places.
+
+**Key open decision this PRD does not resolve on its own** (see §9): whether the existing `machine/<hostname>` + `staging` pattern is *evolved* into the target architecture below, or *replaced* by a new host-branch model. The requirements in §7 are written to work either way — they target the manifest, idempotency, and CI layers, not the branch topology.
+
+---
+
+## 3. Goals
+
+| # | Goal | How we'll know |
+|---|---|---|
+| G1 | Every machine is explicitly classified by platform + environment | A WSL2 shell bootstraps as `environment: wsl`, never as native Linux |
+| G2 | All host automation is idempotent | 3 consecutive bootstrap runs produce 0 unintended changes on runs 2 and 3 |
+| G3 | `main` protection is enforced server-side | A push to `main` with `--no-verify` and no hook installed is still rejected |
+| G4 | CI is a single non-duplicated pipeline | PR-triggered validation lives in one workflow; scheduled/matrix testing in another, with no overlapping triggers |
+| G5 | No unintended content ever reaches version control | Every automated commit passes a secret/policy scan before it lands |
+| G6 | Machine sync is observable | `dotctl status` (or equivalent) reports current state and drift, not just "success/fail" |
+
+---
+
+## 4. Non-Goals (v1 of this hardening effort)
+
+- **Not** building a general-purpose, reusable configuration-management platform for other users/projects — that's the report 3 "v5.0" vision and is explicitly deferred (see §7, P2).
+- **Not** replacing GNU Stow as the Linux filesystem projection layer.
+- **Not** building a GUI or dashboard.
+- **Not** expanding package-manager support beyond what `manifests/dpkg.txt` + `flatpak.txt` already cover.
+- **Not** implementing udev/battery-triggered sync as the *primary* mechanism in v1 — a timer + manual trigger ships first; event triggers are a P1/P2 accelerator layered on top, per the audit's correct criticism of battery-percentage as a brittle primary trigger.
+
+---
+
+## 5. Operator Stories
+
+(Adapted for an infra/tooling context — the "users" are the maintainer, the machine, and CI.)
+
+- As the maintainer, I want a new machine to correctly self-identify as native Linux, WSL, or Windows, so it receives the right configuration profile automatically.
+- As the maintainer, I want to re-run bootstrap after an interrupted run or reboot without risking duplicate branches, broken symlinks, or a failed script.
+- As the maintainer, I want automated machine-state commits restricted to an explicit allow-list of paths, so a stray secret, cache file, or credential can never enter git history.
+- As the maintainer, I want `main` protected by GitHub itself, so deleting a local hook or pushing from an unconfigured clone can't bypass review.
+- As a CI reviewer, I want one PR gate — not two overlapping ones — so I know exactly what has to pass before merge.
+- As the maintainer, I want to ask the system "has anything drifted from what's in git?" and get a real answer, rather than discovering drift by accident.
+
+---
+
+## 6. Requirements
+
+### P0 — Must-Have (hardening phase; blocks everything else)
+
+**P0.1 — Repository hygiene cleanup**
+- [ ] `git rm --cached` on all tracked `.omo/` and `.opencode/` paths; confirm via `git ls-files | grep -E "^\.omo/|^\.opencode/"` returns empty
+- [ ] Audit git history for secrets before deciding between untrack-only vs. history scrub (open question, §9)
+- [ ] Correct the `REPO_URL` in `bootstrap.sh` and the clone example in `README.md` to the actual repo origin
+- [ ] Remove the duplicated content in `docs/src/Architecture-Proposal-Audit` (currently the full review is pasted twice)
+
+**P0.2 — Server-side branch protection**
+- [ ] GitHub ruleset on `main`: require PR, require passing CI status check, disallow force-push, disallow direct push
+- [ ] Given a contributor with `--no-verify` and no local hook installed, when they attempt to push directly to `main`, then GitHub rejects the push
+- [ ] Local pre-push hook remains as a developer convenience only — documented as such, not relied on for enforcement
+
+**P0.3 — Host manifest schema**
+- [ ] `hosts/<id>/host.yaml` with fields: `id`, `platform` (`linux` | `windows`), `environment` (`native` | `wsl` | `vm` | `container`), `profile` (list)
+- [ ] Given a WSL2 Ubuntu shell, when bootstrap runs, then it resolves `environment: wsl` (not `native`)
+- [ ] Given a native Ubuntu install, when bootstrap runs, then it resolves `environment: native`
+- [ ] Detection logic documented (e.g. `WSL_DISTRO_NAME` / `/proc/version` check layered on top of `uname`)
+
+**P0.4 — Idempotent bootstrap**
+- [ ] Bootstrap supports `--dry-run`, reporting planned changes without applying them
+- [ ] Given a machine already bootstrapped, when bootstrap runs again, then 0 unintended file, branch, or symlink changes occur
+- [ ] Explicit state-transition structure: `DISCOVER → VALIDATE → INSTALL_DEPS → RESOLVE_HOST_ID → ENSURE_BRANCH → ENSURE_STOW → INSTALL_SERVICES → VERIFY`
+- [ ] Each step implemented as `ensure_X()` (check-then-act), not `do_X()` (unconditional act)
+
+**P0.5 — CI consolidation**
+- [ ] Merge `ci.yml` and `validate.yml` into a single PR-triggered workflow (lint → policy → stow → bootstrap → idempotency)
+- [ ] `comprehensive.yml` remains, scoped purely to the scheduled/matrix job — no trigger overlap with the PR gate
+- [ ] Every workflow job declares an explicit `permissions:` block (least privilege)
+
+**P0.6 — Automated commit allow-list + secret scan**
+- [ ] Replace unscoped staging in `push-changes.sh` with an explicit tracked-paths allow-list (not `git add .`, and not a bare `git add -u` across the whole tree)
+- [ ] A secret-pattern scan runs before any automated commit; a match blocks the commit and exits non-zero
+- [ ] Given a seeded test secret in a staged file, when the sync script runs, then the commit is blocked and the file is reported
+
+### P1 — Nice-to-Have (fast follow, once P0 is stable)
+
+- [ ] `dotctl` (or equivalently named) thin CLI wrapper exposing `discover / plan / diff / apply / verify / status`, initially wrapping existing `stow.sh` / `validate.sh` rather than a rewrite
+- [ ] `dotctl drift` — compares machine state to desired state and *reports* divergence without auto-correcting
+- [ ] systemd timer (15–30 min) as the Linux sync safety net; existing udev/battery hooks become an optional accelerator on top of the timer, not the sole trigger
+- [ ] CI test matrix: Ubuntu native, WSL2 Ubuntu, Windows/PowerShell
+
+### P2 — Future Considerations (explicitly deferred)
+
+- [ ] Full "cross-platform configuration reconciliation engine" positioning (the report 3 "v5.0" vision) — revisit only after P0+P1 are proven stable on 2+ real machines
+- [ ] Event-driven (udev / Task Scheduler) triggers beyond the timer safety net
+- [ ] Generalizing the reconciler into a reusable framework beyond this repo
+
+---
+
+## 7. Success Metrics
+
+**Leading (days–weeks after Phase 1 ships)**
+- 0 unintended diffs across 3 consecutive bootstrap runs on a clean test VM (idempotency, P0.4)
+- 100% of automated commits pass the secret scan with 0 false negatives against a seeded test secret (P0.6)
+- CI workflow count with overlapping triggers goes from 2 (`ci.yml` + `validate.yml`) to 0 (P0.5)
+
+**Lagging (weeks–months)**
+- 0 incidents of secrets or unintended machine noise entering git history over the following quarter
+- New-machine onboarding time (bootstrap → fully configured) stays flat or improves as machine count grows
+
+---
+
+## 8. Open Questions
+
+| Question | Owner | Blocking? |
+|---|---|---|
+| Keep the existing `machine/<hostname>` + `staging` branch pattern, replace it with a new `host-<os>-<id>` model, or run both during transition? | Sabir | Yes — affects P0.2/P0.3 implementation |
+| Secret-scanning tool: `gitleaks`, `trufflehog`, or a custom regex pass inside `validate.sh`? | Sabir | Yes — blocks P0.6 |
+| Is Windows/PowerShell CI feasible on standard GitHub Actions runners, or does it need self-hosted runners? | Sabir | No — only affects P1 timeline |
+| Does `.omo`/`.opencode` cleanup require a full git-history scrub, or is untracking going forward sufficient? Needs a secret audit of past commits first. | Sabir | Yes — blocks P0.1 completion |
+
+---
+
+## 9. Timeline / Phasing
+
+No hard external deadline — this is internal infrastructure, so phasing is effort-based, not date-driven.
+
+```
+Phase 0  Freeze this PRD + write ADRs for the open questions above       (before any P0 work starts)
+Phase 1  Ship all P0 items                                                (target: one focused sprint)
+Phase 2  Ship P1 items                                                    (target: following 2–4 weeks)
+Phase 3  Revisit P2 only after Phase 1+2 are proven on 2+ real machines
+         (at minimum: 1 native Linux host, 1 WSL host)
+```
+
+**Phase 1 is the hard gate.** Nothing in P1/P2 should start until every P0 acceptance criterion above is checked off — that ordering is the single most important recommendation carried forward from the architecture review chain.
